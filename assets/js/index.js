@@ -12,13 +12,12 @@ let searchResultLayer;
 let currentMapPoints = []; // Тут будет храниться состояние точек (захвачено/нет)
 let currentMode = 'none'; // 'none', 'points', 'kshm', 'search'
 // --- НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ ПОИСКА ---
-let searchAnchorPoint = null; // Источник (синяя точка врага)
-let activeSearchTargets = []; // Цели (атакуемые точки)
+let searchTargetPoints = []; // Цели (атакуемые точки)
 const SEARCH_SCAN_STEP = 50; // Шаг сканирования карты (в метрах)
 
 // --- ОБНОВЛЕННЫЕ КОНСТАНТЫ ---
 const KSHM_RANGE = 2000; // 2км (КШМ -> Точка И Поиск)
-const POINT_RANGE = 1000; // 1км (Точка -> Точка)
+const POINT_RANGE = 2000; // 2км (Точка -> Точка) --- ИЗМЕНЕНО
 const POINT_TO_KSHM_RANGE = 2000; // 2км (Точка -> КШМ)
 
 // --- ОБЪЕКТ СО ВСЕМИ ДАННЫМИ ТОЧЕК (БЕЗ ИМЕН) ---
@@ -273,8 +272,7 @@ function changeLayer() {
     // Сброс поиска
     if (searchCirclesLayer) searchCirclesLayer.clearLayers();
     if (searchResultLayer) searchResultLayer.clearLayers();
-    searchAnchorPoint = null;
-    activeSearchTargets = [];
+    searchTargetPoints = [];
 
     deactivateModes();
     currentMapPoints = []; // Очищаем массив состояния
@@ -344,8 +342,7 @@ function clearMap() {
     // Сброс поиска
     if (searchCirclesLayer) searchCirclesLayer.clearLayers();
     if (searchResultLayer) searchResultLayer.clearLayers();
-    searchAnchorPoint = null;
-    activeSearchTargets = [];
+    searchTargetPoints = [];
     deactivateModes();
     
     // Скрываем инфо-панель
@@ -562,7 +559,7 @@ function toggleSearchMode() {
         btn.classList.add('active');
         document.getElementById('toggle-points-mode-btn').classList.remove('active');
         document.getElementById('toggle-kshm-mode-btn').classList.remove('active');
-        showNotification(translations[currentLang].notificationSearchModeStart); // --- Новый текст
+        showNotification(translations[currentLang].notificationSearchMode);
         map.getContainer().style.cursor = 'help';
         updateStatusPanel(); // Показываем панель "ожидания"
     } else {
@@ -583,8 +580,7 @@ function deactivateModes() {
     // Сброс поиска
     searchCirclesLayer.clearLayers();
     searchResultLayer.clearLayers();
-    searchAnchorPoint = null;
-    activeSearchTargets = [];
+    searchTargetPoints = [];
     closeResult(); // Закрываем панель
 }
 
@@ -602,13 +598,16 @@ function createPointMarker(point) {
     } else {
         color = '#FFFF00'; // Желтый (Нейтрально)
     }
+    
+    // В режиме ПОИСКА все "наши" точки (синие) делаем полупрозрачными
+    let opacity = (currentMode === 'search' && point.status === 'captured') ? 0.3 : 0.5;
 
     const marker = L.circleMarker(latlng, {
         radius: 8,
         color: color,
         weight: 3,
         fillColor: color,
-        fillOpacity: 0.5
+        fillOpacity: opacity
     }).addTo(pointLayer);
 
     marker.bindTooltip(point.name, { // point.name теперь содержит перевод
@@ -672,30 +671,16 @@ function handlePointClick(clickedPointId) {
     updateSignalRange();
 }
 
-// --- НОВЫЙ ОБРАБОТЧИК КЛИКА ДЛЯ ПОИСКА ---
+// Клик по маркеру в режиме Поиска
 function handleSearchClick(point) {
-    const t = translations[currentLang];
-    
-    // 1. Если ИСТОЧНИК еще не выбран, этот клик - выбор Источника
-    if (!searchAnchorPoint) {
-        searchAnchorPoint = point;
-        showNotification(t.notificationSearchModeTarget); // "Теперь кликайте на цели"
+    // В режиме поиска можно кликать только на НЕ-свои точки
+    if (point.status === 'captured') return;
+
+    const index = searchTargetPoints.findIndex(p => p.id === point.id);
+    if (index > -1) {
+        searchTargetPoints.splice(index, 1); // Убираем, если уже есть (toggle)
     } else {
-        // 2. Если Источник есть, это - Цель
-        // Если кликнули на сам Источник - сбрасываем его
-        if (searchAnchorPoint.id === point.id) {
-            searchAnchorPoint = null;
-            activeSearchTargets = [];
-            showNotification(t.notificationSearchModeStart); // "Снова выберите источник"
-        } else {
-            // Это Цель. Добавляем или убираем из списка
-            const index = activeSearchTargets.findIndex(p => p.id === point.id);
-            if (index > -1) {
-                activeSearchTargets.splice(index, 1); // Убираем
-            } else {
-                activeSearchTargets.push(point); // Добавляем
-            }
-        }
+        searchTargetPoints.push(point); // Добавляем
     }
     
     redrawSearchCircles();
@@ -725,10 +710,8 @@ function updateStatusPanel(powerDist, availablePointNames) {
     // Если мы в режиме поиска, эта панель для другого
     if (currentMode === 'search') {
         let title = `<b>${t.searchResultTitle}</b><br>`;
-        if (!searchAnchorPoint) {
-            resultDiv.innerHTML = title + t.notificationSearchModeStart;
-        } else if (activeSearchTargets.length === 0) {
-            resultDiv.innerHTML = title + t.notificationSearchModeTarget;
+        if (searchTargetPoints.length === 0) {
+            resultDiv.innerHTML = title + t.searchResultWaiting;
         } else {
             // Текст для этой панели обновляется в runSmartSearch()
         }
@@ -775,11 +758,11 @@ function updateSignalRange() {
     const capturedPoints = currentMapPoints.filter(p => p.status === 'captured');
     const neutralPoints = currentMapPoints.filter(p => p.status === 'neutral');
 
-    // 1. Логика Точка-Точка (1км, красные линии)
+    // 1. Логика Точка-Точка (2км, красные линии)
     capturedPoints.forEach(cPoint => {
         neutralPoints.forEach(nPoint => {
             const dist = calculateDistance(cPoint.coords, nPoint.coords);
-            if (dist <= POINT_RANGE) {
+            if (dist <= POINT_RANGE) { // POINT_RANGE теперь 2000
                 if (nPoint.status === 'neutral') { 
                      nPoint.status = 'available';
                 }
@@ -794,7 +777,7 @@ function updateSignalRange() {
             const p1 = capturedPoints[i];
             const p2 = capturedPoints[j];
             const dist = calculateDistance(p1.coords, p2.coords);
-            if (dist <= POINT_TO_KSHM_RANGE) { // Используем 2км для связи
+            if (dist <= POINT_TO_KSHM_RANGE) { // 2км
                 L.polyline([p1.coords, p2.coords], { className: 'signal-line-blue' }).addTo(signalLinesLayer);
             }
         }
@@ -845,19 +828,11 @@ function updateSignalRange() {
 
 // --- НОВЫЕ ФУНКЦИИ ДЛЯ УМНОГО ПОИСКА ---
 
-// Перерисовывает круги (синий и красные)
+// Перерисовывает красные круги
 function redrawSearchCircles() {
     searchCirclesLayer.clearLayers();
     const t = translations[currentLang];
     
-    if (searchAnchorPoint) {
-        L.circle(searchAnchorPoint.coords, {
-            radius: KSHM_RANGE, // 2км
-            className: 'search-circle-blue'
-        }).addTo(searchCirclesLayer)
-          .bindPopup(`${t.searchPopupAnchor} (${searchAnchorPoint.name})`);
-    }
-
     activeSearchTargets.forEach(p => {
         L.circle(p.coords, {
             radius: KSHM_RANGE, // 2км
@@ -867,20 +842,23 @@ function redrawSearchCircles() {
     });
 }
 
-// Проверяет, находится ли точка (lat, lng) ВНУТРИ всех кругов (и Источника, и Целей)
-function isPointInAllCircles(lat, lng) {
-    // 1. Проверяем Источник
-    let dist = calculateDistance([lat, lng], searchAnchorPoint.coords);
-    if (dist > KSHM_RANGE) return false;
-
-    // 2. Проверяем все Цели
-    for (const target of activeSearchTargets) {
-        dist = calculateDistance([lat, lng], target.coords);
-        if (dist > KSHM_RANGE) {
-            return false; // Точка вне одного из кругов
+// Проверяет, находится ли точка (lat, lng) ВНУТРИ всех кругов
+function isPointValidForSearch(lat, lng, sources, targets) {
+    // 1. Должна быть в радиусе 2км от ВСЕХ ЦЕЛЕЙ
+    for (const target of targets) {
+        if (calculateDistance([lat, lng], target.coords) > KSHM_RANGE) {
+            return false; // Слишком далеко от одной из целей
         }
     }
-    return true; // Точка внутри ВСЕХ кругов
+
+    // 2. Должна быть в радиусе 2км от ХОТЯ БЫ ОДНОГО ИСТОЧНИКА
+    for (const source of sources) {
+        if (calculateDistance([lat, lng], source.coords) <= KSHM_RANGE) {
+            return true; // Найдено! Достает до всех целей и запитано от этого источника
+        }
+    }
+
+    return false; // Достает до всех целей, но не запитано ни от одного источника
 }
 
 // Главная функция "Умного Поиска"
@@ -891,38 +869,46 @@ function runSmartSearch() {
     const panel = document.getElementById('result-panel');
     panel.classList.add('active'); // Панель всегда активна в режиме поиска
 
-    if (!searchAnchorPoint || activeSearchTargets.length === 0) {
-        updateStatusPanel(); // Показывает текст "Выберите..."
+    if (searchTargetPoints.length === 0) {
+        resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>${t.searchResultWaiting}`;
+        return;
+    }
+
+    // ИСТОЧНИКИ = все точки, которые НЕ захвачены нами (т.е. желтые или красные)
+    const enemySourcePoints = currentMapPoints.filter(p => p.status !== 'captured');
+    
+    if (enemySourcePoints.length === 0) {
+        resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>Все точки захвачены. Нет вражеских источников.`;
         return;
     }
     
     let validGridPoints = [];
-    let allCircles = [searchAnchorPoint, ...activeSearchTargets];
     
     // Находим "общий" квадрат, в котором будем искать
+    let allPoints = [...enemySourcePoints, ...searchTargetPoints];
     let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
-    allCircles.forEach(p => {
+    allPoints.forEach(p => {
         minLat = Math.min(minLat, p.coords[0] - KSHM_RANGE);
         maxLat = Math.max(maxLat, p.coords[0] + KSHM_RANGE);
         minLng = Math.min(minLng, p.coords[1] - KSHM_RANGE);
         maxLng = Math.max(maxLng, p.coords[1] + KSHM_RANGE);
     });
 
-    // Сканируем сеткой (с шагом 50м) только этот квадрат
+    // Сканируем сеткой
     for (let lat = minLat; lat <= maxLat; lat += SEARCH_SCAN_STEP) {
         for (let lng = minLng; lng <= maxLng; lng += SEARCH_SCAN_STEP) {
-            if (isPointInAllCircles(lat, lng)) {
+            if (isPointValidForSearch(lat, lng, enemySourcePoints, searchTargetPoints)) {
                 validGridPoints.push([lat, lng]);
             }
         }
     }
     
     if (validGridPoints.length === 0) {
-        resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>${t.kshmNoPoints}`; // "Нет новых точек" = "Нет пересечения"
+        resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>${t.kshmNoPoints}`; // "Нет пересечения"
         return; // Зона не найдена
     }
 
-    // Находим границы "зеленого квадрата"
+    // Находим границы "красного квадрата"
     let bMinLat = Infinity, bMaxLat = -Infinity, bMinLng = Infinity, bMaxLng = -Infinity;
     validGridPoints.forEach(p => {
         bMinLat = Math.min(bMinLat, p[0]);
@@ -931,9 +917,9 @@ function runSmartSearch() {
         bMaxLng = Math.max(bMaxLng, p[1]);
     });
 
-    // Рисуем зеленый квадрат
+    // Рисуем красный квадрат
     const bounds = [[bMinLat, bMinLng], [bMaxLat, bMaxLng]];
-    L.rectangle(bounds, { className: 'search-result-green' }).addTo(searchResultLayer);
+    L.rectangle(bounds, { className: 'search-result-red' }).addTo(searchResultLayer);
     
     resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>Зона найдена!`;
 }
