@@ -39,8 +39,7 @@ const translations = {
             darkred: 'Темная + Красный',
             lightred: 'Светлая + Красный'
         },
-        onMapHistory: "на карте: ",
-        promptPointName: 'Введите имя для этой точки:' // <-- ДОБАВЛЕНА СТРОКА
+        onMapHistory: "на карте: "
     },
     uk: {
         title: 'Тактична карта',
@@ -49,7 +48,7 @@ const translations = {
             udachne: 'Удачне',
             sergeevka: 'Сергеївка',
             satellite: 'Донецький Аеропорт',
-            DonAirConflict: 'Донецький Аеропорт'
+            DonAirConflict: 'Донецький Аэропорт'
         },
         gridToggleLabel: 'Показати сітку',
         languageLabel: 'Мова:',
@@ -70,7 +69,7 @@ const translations = {
         navDevice: 'Введення',
         navMap: 'Вибір карти',
         navInfo: 'Інформація',
-        credits: 'Powered by PRONEDROG | За підтримки Conflict In Europe',
+        credits: 'Powered by PRONEDROG | За підтримки Conflict InEurope',
         navSetup: 'Передустановка',
         setupTitle: 'Меню передустановок',
         toggleMenuLabel: 'натисніть за кордоном меню, щоб його закрити',
@@ -82,8 +81,7 @@ const translations = {
             lightred: 'Світла + Червоний'
         },
         themeLabel: "Тема",
-        onMapHistory: "на мапі: ",
-        promptPointName: 'Введіть ім\'я для цієї точки:' // <-- ДОБАВЛЕНА СТРОКА
+        onMapHistory: "на мапі: "
     },
     en: {
         title: 'Tactical Map',
@@ -125,7 +123,6 @@ const translations = {
             lightred: 'Light + Red'
         },
         themeLabel: "Theme",
-        onMapHistory: "on the map: ",
-        promptPointName: 'Enter a name for this point:' // <-- ДОБАВЛЕНА СТРОКА
+        onMapHistory: "on the map: "
     }
 };
