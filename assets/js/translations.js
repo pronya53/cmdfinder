@@ -24,10 +24,10 @@ const translations = {
                    <p>Этот инструмент симулирует логику захвата точек и связи для Arma Reforger.</p>
                    <ul>
                         <li id="info-item1"><b>Точки (Желтые):</b> Нейтральные.</li>
-                        <li id="info-item2"><b>Режим Точек (<i class="fa fa-network-wired"></i>):</b> Нажмите на нейтральную (желтую) или доступную (красную) точку, чтобы "захватить" ее (станет синей). Нажмите на синюю, чтобы сделать ее нейтральной.</li>
+                        <li id="info-item2"><b>Режим Точек (<i class="fa fa.network-wired"></i>):</b> Нажмите на нейтральную (желтую) или доступную (красную) точку, чтобы "захватить" ее (станет синей). Нажмите на синюю, чтобы сделать ее нейтральной.</li>
                         <li id="info-item3"><b>Сигнал от Точки:</b> Синяя точка автоматически активирует (делает красными) все нейтральные точки в радиусе <b>1км</b>.</li>
-                        <li id="info-item4"><b>Режим КШМ (<i class="fa fa-truck"></i>):</b> Нажмите ПКМ (на ПК) или тапните (на моб.) по карте, чтобы поставить КШМ (синий квадрат).</li>
-                        <li id="info-item5"><b>Питание КШМ:</b> КШМ "запитывается", если находится в радиусе <b>2км</b> от любой синей точки.</li>
+                        <li id="info-item4"><b>Режим КШМ (<i class="fa fa.truck"></i>):</b> Нажмите ПКМ (на ПК) или тапните (на моб.) по карте, чтобы поставить КШМ (синий квадрат).</li>
+                        <li id="info-item5"><b>Питание КШМ:</b> КШМ "запитывается", если находится в радиусе <b>2км</b> от любой *активной* точки (синей или красной).</li>
                         <li id="info-item6"><b>Сигнал от КШМ:</b> Запитанная КШМ активирует (делает красными) все нейтральные точки в радиусе <b>2км</b>.</li>
                    </ul>
                    <p id="info-author"><strong>Автор:</strong> PRONEDROG</p>
@@ -43,7 +43,6 @@ const translations = {
         navSetup: 'Предустановки',
         setupTitle: 'Меню предустановок',
         toggleMenuLabel: 'нажмите за границей меню чтобы его закрыть',
-        historyTitle: 'Сохраненные',
         themeLabel: "Тема",
         themes: {
             darkgreen: 'Темная + Зелёный',
@@ -51,8 +50,6 @@ const translations = {
             darkred: 'Темная + Красный',
             lightred: 'Светлая + Красный'
         },
-        onMapHistory: "на карте: ",
-        // --- НОВЫЕ СТРОКИ ---
         togglePointsModeTitle: 'Режим управления точками',
         toggleKshmModeTitle: 'Режим установки КШМ',
         kshmPopup: 'Командный пункт (КШМ)',
@@ -61,7 +58,38 @@ const translations = {
         kshmPowerSource: 'Питание КШМ (2км):',
         kshmActivePoints: 'Сигнал на:',
         kshmNoPower: 'КШМ не запитана',
-        kshmNoPoints: 'Нет новых точек в радиусе'
+        kshmNoPoints: 'Нет новых точек в радиусе',
+        
+        // --- ПЕРЕВОДЫ НАЗВАНИЙ ТОЧЕК ---
+        pointNames: {
+            udachne: {
+                1: "Торговая Площадь",
+                2: "Заправка",
+                3: "Карго",
+                4: "Ж/Д Станция",
+                5: "Резервный Двор",
+                6: "Ферма",
+                7: "Школа",
+                8: "Завод",
+                9: "Военная База",
+                10: "Стройка",
+                11: "Складской Комплекс"
+            },
+            sergeevka: {
+                1: "Окопы",
+                2: "Западный Аванпост",
+                3: "Восточный Аванпост",
+                4: "Завод",
+                5: "Колхоз",
+                6: "Заправка",
+                7: "Опорный Пункт",
+                8: "Ферма",
+                9: "Ж/Д Станция",
+                10: "Школа",
+                11: "Стройплощадка",
+                12: "Склады"
+            }
+        }
     },
     uk: {
         title: 'Тактична карта',
@@ -90,8 +118,8 @@ const translations = {
                         <li id="info-item1"><b>Точки (Жовті):</b> Нейтральні.</li>
                         <li id="info-item2"><b>Режим Точок (<i class="fa fa-network-wired"></i>):</b> Натисніть на нейтральну (жовту) або доступну (червону) точку, щоб "захопити" її (стане синьою). Натисніть на синю, щоб зробити її нейтральною.</li>
                         <li id="info-item3"><b>Сигнал від Точки:</b> Синя точка автоматично активує (робить червоними) усі нейтральні точки в радіусі <b>1км</b>.</li>
-                        <li id="info-item4"><b>Режим КШМ (<i class="fa fa-truck"></i>):</b> Натисніть ПКМ (на ПК) або тапніть (на моб.) по карті, щоб поставити КШМ (синій квадрат).</li>
-                        <li id="info-item5"><b>Живлення КШМ:</b> КШМ "отримує живлення", якщо знаходиться в радіусі <b>2км</b> від будь-якої синьої точки.</li>
+                        <li id="info-item4"><b>Режим КШМ (<i class="fa fa.truck"></i>):</b> Натисніть ПКМ (на ПК) або тапніть (на моб.) по карті, щоб поставити КШМ (синій квадрат).</li>
+                        <li id="info-item5"><b>Живлення КШМ:</b> КШМ "отримує живлення", якщо знаходиться в радіусі <b>2км</b> від будь-якої *активної* точки (синьої або червоної).</li>
                         <li id="info-item6"><b>Сигнал від КШМ:</b> КШМ, що має живлення, активує (робить червоними) усі нейтральні точки в радіусі <b>2км</b>.</li>
                    </ul>
                    <p id="info-author"><strong>Автор:</strong> PRONEDROG</p>
@@ -107,16 +135,13 @@ const translations = {
         navSetup: 'Передустановка',
         setupTitle: 'Меню передустановок',
         toggleMenuLabel: 'натисніть за кордоном меню, щоб його закрити',
-        historyTitle: 'Збережені',
+        themeLabel: "Тема",
         themes: {
             darkgreen: 'Темна + Зелений',
             lightgreen: 'Світла + Зелений',
             darkred: 'Темна + Червоний',
             lightred: 'Світла + Червоний'
         },
-        themeLabel: "Тема",
-        onMapHistory: "на мапі: ",
-        // --- НОВЫЕ СТРОКИ ---
         togglePointsModeTitle: 'Режим керування точками',
         toggleKshmModeTitle: 'Режим установки КШМ',
         kshmPopup: 'Командний пункт (КШМ)',
@@ -125,7 +150,38 @@ const translations = {
         kshmPowerSource: 'Живлення КШМ (2км):',
         kshmActivePoints: 'Сигнал на:',
         kshmNoPower: 'КШМ не підключена',
-        kshmNoPoints: 'Немає нових точок в радіусі'
+        kshmNoPoints: 'Немає нових точок в радіусі',
+        
+        // --- ПЕРЕВОДЫ НАЗВАНИЙ ТОЧЕК ---
+        pointNames: {
+            udachne: {
+                1: "Торгова Площа",
+                2: "Заправка",
+                3: "Карго",
+                4: "Рейвей стейшн",
+                5: "Резервний двір",
+                6: "Ферма",
+                7: "Школа",
+                8: "Завод",
+                9: "Мілітари",
+                10: "Стройка",
+                11: "Складский комплекс"
+            },
+            sergeevka: {
+                1: "Окопи",
+                2: "Західний граничний аванпост",
+                3: "Східний граничний аванпост",
+                4: "Завод",
+                5: "Колгосп",
+                6: "Заправка",
+                7: "Опорний пункт",
+                8: "Ферма",
+                9: "Залізнична станція",
+                10: "Школа",
+                11: "Буд. Майданчик",
+                12: "Склади"
+            }
+        }
     },
     en: {
         title: 'Tactical Map',
@@ -155,7 +211,7 @@ const translations = {
                         <li id="info-item2"><b>Points Mode (<i class="fa fa-network-wired"></i>):</b> Click a neutral (yellow) or available (red) point to "capture" it (turns blue). Click a blue point to make it neutral.</li>
                         <li id="info-item3"><b>Signal from Point:</b> A blue point automatically activates (turns red) all neutral points within a <b>1km</b> radius.</li>
                         <li id="info-item4"><b>KSHM Mode (<i class="fa fa-truck"></i>):</b> Right-click (on PC) or tap (on mob.) the map to place a KSHM (blue square).</li>
-                        <li id="info-item5"><b>KSHM Power:</b> The KSHM is "powered" if it is within <b>2km</b> of any blue point.</li>
+                        <li id="info-item5"><b>KSHM Power:</b> The KSHM is "powered" if it is within <b>2km</b> of any *active* point (blue or red).</li>
                         <li id="info-item6"><b>Signal from KSHM:</b> A powered KSHM activates (turns red) all neutral points within a <b>2km</b> radius.</li>
                    </ul>
                    <p id="info-author"><strong>Author:</strong> PRONEDROG</p>
@@ -171,16 +227,13 @@ const translations = {
         navSetup: 'Setup',
         setupTitle: 'Setup menu',
         toggleMenuLabel: 'Click outside the menu to close it',
-        historyTitle: 'Saved',
+        themeLabel: "Theme",
         themes: {
             darkgreen: 'Dark + Green',
             lightgreen: 'Light + Green',
             darkred: 'Dark + Red',
             lightred: 'Light + Red'
         },
-        themeLabel: "Theme",
-        onMapHistory: "on the map: ",
-        // --- НОВЫЕ СТРОКИ ---
         togglePointsModeTitle: 'Point Control Mode',
         toggleKshmModeTitle: 'Place KSHM Mode',
         kshmPopup: 'Command Vehicle (KSHM)',
@@ -189,6 +242,37 @@ const translations = {
         kshmPowerSource: 'KSHM Power (2km):',
         kshmActivePoints: 'Signal to:',
         kshmNoPower: 'KSHM not powered',
-        kshmNoPoints: 'No new points in range'
+        kshmNoPoints: 'No new points in range',
+
+        // --- ПЕРЕВОДЫ НАЗВАНИЙ ТОЧЕК ---
+        pointNames: {
+            udachne: {
+                1: "Trade Square",
+                2: "Gas Station",
+                3: "Cargo",
+                4: "Railway Station",
+                5: "Reserve Yard",
+                6: "Farm",
+                7: "School",
+                8: "Factory",
+                9: "Military Base",
+                10: "Construction Site",
+                11: "Warehouse Complex"
+            },
+            sergeevka: {
+                1: "Trenches",
+                2: "Western Outpost",
+                3: "Eastern Outpost",
+                4: "Factory",
+                5: "Kolkhoz",
+                6: "Gas Station",
+                7: "Strongpoint",
+                8: "Farm",
+                9: "Railway Station",
+                10: "School",
+                11: "Construction Site",
+                12: "Warehouses"
+            }
+        }
     }
 };
