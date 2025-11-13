@@ -596,23 +596,22 @@ body {
     cursor: pointer;
 }
 
-/* Стили Истории УДАЛЕНЫ */
-
 body div.controls {
     position: fixed;
     bottom: 50px;
     backdrop-filter: blur(10px);
     z-index: 100;
-    left: calc(50% - 240px/2);
-    width: 240px;
+    left: 50%;
+    transform: translateX(-50%); /* Авто-центровка */
+    width: auto; /* Авто-ширина */
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px; /* Пробел между кнопками */
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
     background: var(--content-grad);
     border: none;
-    padding: 10px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around; /* Изменено для центровки 3-х кнопок */
 }
 
 body div.controls button {
@@ -701,4 +700,22 @@ label {
 .signal-line-blue {
     stroke: #00BFFF;
     stroke-width: 3;
+}
+
+/* --- НОВЫЕ СТИЛИ ДЛЯ ПОИСКА --- */
+.search-circle-red {
+    stroke: #FF0000;
+    stroke-width: 2;
+    stroke-dasharray: 10, 10;
+    fill: #FF0000;
+    fill-opacity: 0.1;
+    pointer-events: none; /* Чтобы не мешали кликать */
+}
+
+.search-result-green {
+    stroke: #00FF00;
+    stroke-width: 3;
+    fill: #00FF00;
+    fill-opacity: 0.3;
+    pointer-events: none;
 }
