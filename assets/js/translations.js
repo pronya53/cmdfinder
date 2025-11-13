@@ -45,7 +45,10 @@ const translations = {
         toggleKshmModeTitle: 'Режим установки КШМ',
         kshmPopup: 'Командный пункт (КШМ)',
         notificationPointsMode: 'Режим захвата точек АКТИВИРОВАН',
-        notificationKshmMode: 'Режим установки КШМ АКТИВИРОВАН'
+        notificationKshmMode: 'Режим установки КШМ АКТИВИРОВАН',
+        kshmPowerSource: 'Питание КШМ (2км):',
+        kshmActivePoints: 'Точек от КШМ (2км):',
+        kshmNoPower: 'КШМ не запитана'
     },
     uk: {
         title: 'Тактична карта',
@@ -74,7 +77,7 @@ const translations = {
         navLanguage: 'Мова',
         navDevice: 'Введення',
         navMap: 'Вибір карти',
-        navInfo: 'Інформація',
+        navInfo: 'Інформаформація',
         credits: 'Powered by PRONEDROG | За підтримки Conflict InEurope',
         navSetup: 'Передустановка',
         setupTitle: 'Меню передустановок',
@@ -93,7 +96,10 @@ const translations = {
         toggleKshmModeTitle: 'Режим установки КШМ',
         kshmPopup: 'Командний пункт (КШМ)',
         notificationPointsMode: 'Режим захоплення точок АКТИВОВАНИЙ',
-        notificationKshmMode: 'Режим встановлення КШМ АКТИВОВАНИЙ'
+        notificationKshmMode: 'Режим встановлення КШМ АКТИВОВАНИЙ',
+        kshmPowerSource: 'Живлення КШМ (2км):',
+        kshmActivePoints: 'Точок від КШМ (2км):',
+        kshmNoPower: 'КШМ не підключена'
     },
     en: {
         title: 'Tactical Map',
@@ -141,6 +147,9 @@ const translations = {
         toggleKshmModeTitle: 'Place KSHM Mode',
         kshmPopup: 'Command Vehicle (KSHM)',
         notificationPointsMode: 'Point Capture Mode ACTIVATED',
-        notificationKshmMode: 'Place KSHM Mode ACTIVATED'
+        notificationKshmMode: 'Place KSHM Mode ACTIVATED',
+        kshmPowerSource: 'KSHM Power (2km):',
+        kshmActivePoints: 'Points by KSHM (2km):',
+        kshmNoPower: 'KSHM not powered'
     }
 };
