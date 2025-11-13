@@ -61,7 +61,8 @@ function changeLanguage() {
     if (currentMapPoints.length > 0) {
         // Обновляем имена в текущем состоянии
         currentMapPoints.forEach(p => {
-            p.name = translations[currentLang].pointNames[mapName][p.id] || `Point ${p.id}`;
+            const pointTranslations = translations[currentLang].pointNames[mapName];
+            p.name = pointTranslations ? (pointTranslations[p.id] || `Point ${p.id}`) : `Point ${p.id}`;
         });
         redrawPoints(); // Перерисовываем маркеры с новыми именами
         updateSignalRange(); // Обновляем инфо-панель (где тоже есть имена)
@@ -84,7 +85,7 @@ function updateTexts() {
     document.getElementById('nav-device').textContent = t.navDevice;
     document.getElementById('nav-info').textContent = t.navInfo;
     document.getElementById('device-title').textContent = t.navDevice;
-    document.getElementById('info-title').textContent = t.navInfo;
+    document.getElementById('info-title').textContent = t.infoTitle;
     document.getElementById('info-content').innerHTML = t.infoText;
     document.getElementById('theme-label').innerHTML = t.themeLabel;
     document.getElementById('toggleMenuLabel').textContent = t.toggleMenuLabel.toUpperCase();
@@ -376,7 +377,7 @@ let activeMode = null; // для мобильного
 function setDevice(mode) {
     deviceMode = mode;
     
-    // Не закрываем меню, если вызвано при загрузке
+    // Не закрываем меню, если вызвано при загрузке (не 'mobile')
     if (mode === 'mobile') { 
         toggleMainMenu(); 
     }
@@ -395,7 +396,10 @@ function setDevice(mode) {
             }
         });
 
-        showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].mobileBtn);
+        // Показываем уведомление, только если кнопка была нажата
+        if(document.getElementById('main-modal').classList.contains('active')) {
+             showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].mobileBtn);
+        }
     
     } else { // 'pc' mode
         document.getElementById('mobile-buttons').classList.remove('active');
@@ -416,6 +420,11 @@ function setDevice(mode) {
             // Левый клик (ПК) - ничего не делаем, т.к. клик на маркеры
             console.log('PC left-click detected at', e.latlng);
         });
+        
+        // Показываем уведомление, только если кнопка была нажата
+        if(document.getElementById('main-modal').classList.contains('active')) {
+             showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].pcBtn);
+        }
     }
 }
 // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
@@ -573,14 +582,15 @@ function redrawPoints() {
 // Инициализирует и отрисовывает точки при смене карты
 function drawStrategicPoints(pointsArray) {
     if (!pointLayer || !pointsArray) return; 
-    const mapName = document.getElementById('layer').value;
+    const mapName = document.getElementById('layer').value || 'udachne';
     
     // Глубокое копирование
     currentMapPoints = JSON.parse(JSON.stringify(pointsArray));
     
     // Внедряем имена
     currentMapPoints.forEach(p => {
-        p.name = translations[currentLang].pointNames[mapName]?.[p.id] || `Point ${p.id}`;
+        const pointTranslations = translations[currentLang].pointNames[mapName];
+        p.name = pointTranslations ? (pointTranslations[p.id] || `Point ${p.id}`) : `Point ${p.id}`;
     });
     
     redrawPoints(); // Отрисовываем
@@ -664,18 +674,30 @@ function updateSignalRange() {
     const capturedPoints = currentMapPoints.filter(p => p.status === 'captured');
     const neutralPoints = currentMapPoints.filter(p => p.status === 'neutral');
 
-    // 1. Логика Точка-Точка (1км) - ИСПРАВЛЕНО
+    // 1. Логика Точка-Точка (1км, красные линии)
     capturedPoints.forEach(cPoint => {
         neutralPoints.forEach(nPoint => {
             const dist = calculateDistance(cPoint.coords, nPoint.coords);
             if (dist <= POINT_RANGE) {
-                if (nPoint.status === 'neutral') { // Проверяем, что она еще не 'available'
+                if (nPoint.status === 'neutral') { 
                      nPoint.status = 'available';
                 }
                 L.polyline([cPoint.coords, nPoint.coords], { className: 'signal-line-red' }).addTo(signalLinesLayer);
             }
         });
     });
+
+    // 1b. Логика Точка-Точка (2км, синие линии, ДРУЖЕСТВЕННЫЕ)
+    for (let i = 0; i < capturedPoints.length; i++) {
+        for (let j = i + 1; j < capturedPoints.length; j++) {
+            const p1 = capturedPoints[i];
+            const p2 = capturedPoints[j];
+            const dist = calculateDistance(p1.coords, p2.coords);
+            if (dist <= POINT_TO_KSHM_RANGE) { // Используем 2км для связи
+                L.polyline([p1.coords, p2.coords], { className: 'signal-line-blue' }).addTo(signalLinesLayer);
+            }
+        }
+    }
 
     // 2. Логика КШМ
     let kshmPowerDist = 0;
@@ -686,14 +708,12 @@ function updateSignalRange() {
         let isKshmPowered = false;
         let minPowerDist = Infinity;
 
-        // 2a. Проверяем, "запитана" ли КШМ (2км от ЛЮБОЙ активной точки) - ИСПРАВЛЕНО
-        const livePoints = currentMapPoints.filter(p => p.status === 'captured' || p.status === 'available');
-        
-        livePoints.forEach(lPoint => {
-            const distToKshm = calculateDistance(lPoint.coords, kshmPos);
-            if (distToKshm <= POINT_TO_KSHM_RANGE) {
+        // 2a. Проверяем, "запитана" ли КШМ (2км от СИНИХ точек) - ИСПРАВЛЕНО
+        capturedPoints.forEach(cPoint => {
+            const distToKshm = calculateDistance(cPoint.coords, kshmPos);
+            if (distToKshm <= POINT_TO_KSHM_RANGE) { 
                 isKshmPowered = true;
-                L.polyline([lPoint.coords, kshmPos], { className: 'signal-line-blue' }).addTo(signalLinesLayer);
+                L.polyline([cPoint.coords, kshmPos], { className: 'signal-line-blue' }).addTo(signalLinesLayer);
                 
                 if (distToKshm < minPowerDist) {
                     minPowerDist = distToKshm;
@@ -706,7 +726,7 @@ function updateSignalRange() {
         // 2b. Если запитана, раздаем сигнал (2км)
         if (isKshmPowered) {
             currentMapPoints.forEach(p => {
-                if (p.status === 'neutral') {
+                if (p.status === 'neutral') { // Ищем только нейтральные
                     const distFromKshm = calculateDistance(kshmPos, p.coords);
                     if (distFromKshm <= KSHM_RANGE) {
                         p.status = 'available'; // Делаем красной
