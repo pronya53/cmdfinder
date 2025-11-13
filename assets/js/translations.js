@@ -24,11 +24,11 @@ const translations = {
                    <p>Этот инструмент симулирует логику захвата точек и связи для Arma Reforger.</p>
                    <ul>
                         <li id="info-item1"><b>Точки (Желтые):</b> Нейтральные.</li>
-                        <li id="info-item2"><b>Режим Точек (<i class="fa fa.network-wired"></i>):</b> Нажмите на нейтральную (желтую) или доступную (красную) точку, чтобы "захватить" ее (станет синей). Нажмите на синюю, чтобы сделать ее нейтральной.</li>
-                        <li id="info-item3"><b>Сигнал от Точки:</b> Синяя точка автоматически активирует (делает красными) все нейтральные точки в радиусе <b>1км</b>.</li>
-                        <li id="info-item4"><b>Режим КШМ (<i class="fa fa.truck"></i>):</b> Нажмите ПКМ (на ПК) или тапните (на моб.) по карте, чтобы поставить КШМ (синий квадрат).</li>
-                        <li id="info-item5"><b>Питание КШМ:</b> КШМ "запитывается", если находится в радиусе <b>2км</b> от любой *активной* точки (синей или красной).</li>
-                        <li id="info-item6"><b>Сигнал от КШМ:</b> Запитанная КШМ активирует (делает красными) все нейтральные точки в радиусе <b>2км</b>.</li>
+                        <li id="info-item2"><b>Режим Точек (<i class="fa fa-network-wired"></i>):</b> Нажмите на нейтральную (желтую) или доступную (красную) точку, чтобы "захватить" ее (станет синей). Нажмите на синюю, чтобы сделать ее нейтральной.</li>
+                        <li id="info-item3"><b>Сигнал от Точки (1км):</b> Синяя точка автоматически активирует (делает красными) все нейтральные точки в радиусе <b>1км</b>.</li>
+                        <li id="info-item4"><b>Режим КШМ (<i class="fa fa-truck"></i>):</b> Нажмите ПКМ (на ПК) или тапните (на моб.) по карте, чтобы поставить КШМ (синий квадрат).</li>
+                        <li id="info-item5"><b>Питание КШМ (2км):</b> КШМ "запитывается", если находится в радиусе <b>2км</b> от любой <b>синей</b> (захваченной) точки.</li>
+                        <li id="info-item6"><b>Сигнал от КШМ (2км):</b> Запитанная КШМ активирует (делает красными) все нейтральные точки в радиусе <b>2км</b>.</li>
                    </ul>
                    <p id="info-author"><strong>Автор:</strong> PRONEDROG</p>
                    <p id="info-mapdata"><strong>Данные карт предоставлены:</strong> Conflict In Europe</p>`,
@@ -117,10 +117,10 @@ const translations = {
                    <ul>
                         <li id="info-item1"><b>Точки (Жовті):</b> Нейтральні.</li>
                         <li id="info-item2"><b>Режим Точок (<i class="fa fa-network-wired"></i>):</b> Натисніть на нейтральну (жовту) або доступну (червону) точку, щоб "захопити" її (стане синьою). Натисніть на синю, щоб зробити її нейтральною.</li>
-                        <li id="info-item3"><b>Сигнал від Точки:</b> Синя точка автоматично активує (робить червоними) усі нейтральні точки в радіусі <b>1км</b>.</li>
-                        <li id="info-item4"><b>Режим КШМ (<i class="fa fa.truck"></i>):</b> Натисніть ПКМ (на ПК) або тапніть (на моб.) по карті, щоб поставити КШМ (синій квадрат).</li>
-                        <li id="info-item5"><b>Живлення КШМ:</b> КШМ "отримує живлення", якщо знаходиться в радіусі <b>2км</b> від будь-якої *активної* точки (синьої або червоної).</li>
-                        <li id="info-item6"><b>Сигнал від КШМ:</b> КШМ, що має живлення, активує (робить червоними) усі нейтральні точки в радіусі <b>2км</b>.</li>
+                        <li id="info-item3"><b>Сигнал від Точки (1км):</b> Синя точка автоматично активує (робить червоними) усі нейтральні точки в радіусі <b>1км</b>.</li>
+                        <li id="info-item4"><b>Режим КШМ (<i class="fa fa-truck"></i>):</b> Натисніть ПКМ (на ПК) або тапніть (на моб.) по карті, щоб поставити КШМ (синій квадрат).</li>
+                        <li id="info-item5"><b>Живлення КШМ (2км):</b> КШМ "отримує живлення", якщо знаходиться в радіусі <b>2км</b> від будь-якої <b>синьої</b> (захопленої) точки.</li>
+                        <li id="info-item6"><b>Сигнал від КШМ (2км):</b> КШМ, що має живлення, активує (робить червоними) усі нейтральні точки в радіусі <b>2км</b>.</li>
                    </ul>
                    <p id="info-author"><strong>Автор:</strong> PRONEDROG</p>
                    <p id="info-mapdata"><strong>Дані карт надано:</strong> Conflict In Europe</p>`,
@@ -209,10 +209,10 @@ const translations = {
                    <ul>
                         <li id="info-item1"><b>Points (Yellow):</b> Neutral.</li>
                         <li id="info-item2"><b>Points Mode (<i class="fa fa-network-wired"></i>):</b> Click a neutral (yellow) or available (red) point to "capture" it (turns blue). Click a blue point to make it neutral.</li>
-                        <li id="info-item3"><b>Signal from Point:</b> A blue point automatically activates (turns red) all neutral points within a <b>1km</b> radius.</li>
+                        <li id="info-item3"><b>Signal from Point (1km):</b> A blue point automatically activates (turns red) all neutral points within a <b>1km</b> radius.</li>
                         <li id="info-item4"><b>KSHM Mode (<i class="fa fa-truck"></i>):</b> Right-click (on PC) or tap (on mob.) the map to place a KSHM (blue square).</li>
-                        <li id="info-item5"><b>KSHM Power:</b> The KSHM is "powered" if it is within <b>2km</b> of any *active* point (blue or red).</li>
-                        <li id="info-item6"><b>Signal from KSHM:</b> A powered KSHM activates (turns red) all neutral points within a <b>2km</b> radius.</li>
+                        <li id="info-item5"><b>KSHM Power (2km):</b> The KSHM is "powered" if it is within <b>2km</b> of any <b>blue</b> (captured) point.</li>
+                        <li id="info-item6"><b>Signal from KSHM (2km):</b> A powered KSHM activates (turns red) all neutral points within a <b>2km</b> radius.</li>
                    </ul>
                    <p id="info-author"><strong>Author:</strong> PRONEDROG</p>
                    <p id="info-mapdata"><strong>Map Data Provided by:</strong> Conflict In Europe</p>`,
