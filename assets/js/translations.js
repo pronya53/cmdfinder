@@ -39,7 +39,13 @@ const translations = {
             darkred: 'Темная + Красный',
             lightred: 'Светлая + Красный'
         },
-        onMapHistory: "на карте: "
+        onMapHistory: "на карте: ",
+        // --- НОВЫЕ СТРОКИ ---
+        togglePointsModeTitle: 'Режим управления точками',
+        toggleKshmModeTitle: 'Режим установки КШМ',
+        kshmPopup: 'Командный пункт (КШМ)',
+        notificationPointsMode: 'Режим захвата точек АКТИВИРОВАН',
+        notificationKshmMode: 'Режим установки КШМ АКТИВИРОВАН'
     },
     uk: {
         title: 'Тактична карта',
@@ -81,7 +87,13 @@ const translations = {
             lightred: 'Світла + Червоний'
         },
         themeLabel: "Тема",
-        onMapHistory: "на мапі: "
+        onMapHistory: "на мапі: ",
+        // --- НОВЫЕ СТРОКИ ---
+        togglePointsModeTitle: 'Режим керування точками',
+        toggleKshmModeTitle: 'Режим установки КШМ',
+        kshmPopup: 'Командний пункт (КШМ)',
+        notificationPointsMode: 'Режим захоплення точок АКТИВОВАНИЙ',
+        notificationKshmMode: 'Режим встановлення КШМ АКТИВОВАНИЙ'
     },
     en: {
         title: 'Tactical Map',
@@ -123,6 +135,12 @@ const translations = {
             lightred: 'Light + Red'
         },
         themeLabel: "Theme",
-        onMapHistory: "on the map: "
+        onMapHistory: "on the map: ",
+        // --- НОВЫЕ СТРОКИ ---
+        togglePointsModeTitle: 'Point Control Mode',
+        toggleKshmModeTitle: 'Place KSHM Mode',
+        kshmPopup: 'Command Vehicle (KSHM)',
+        notificationPointsMode: 'Point Capture Mode ACTIVATED',
+        notificationKshmMode: 'Place KSHM Mode ACTIVATED'
     }
 };
