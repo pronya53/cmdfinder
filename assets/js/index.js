@@ -1,12 +1,156 @@
 console.log('Starting map initialization...');
 
 let currentLang = 'uk';
+let pointLayer; // Слой для маркеров точек
 
-// --- ИЗМЕНЕНИЕ 1: ---
-let isAddPointMode = false; // Флаг, включен ли режим добавления точек
-let tempPoints = []; // Массив для временного хранения точек
-let pointLayer; // <-- ОШИБКА БЫЛА ЗДЕСЬ. Теперь мы просто объявляем.
-// --- КОНЕЦ ---
+// --- ОБЪЕКТ СО ВСЕМИ ДАННЫМИ ТОЧЕК ---
+const mapPointsData = {
+    udachne: [
+        {
+            "id": 1,
+            "name": "Торгова Площа",
+            "coords": [2685, 7983.25],
+            "status": "neutral"
+        },
+        {
+            "id": 2,
+            "name": "Заправка",
+            "coords": [1172, 7524.25],
+            "status": "neutral"
+        },
+        {
+            "id": 3,
+            "name": "Карго",
+            "coords": [2172.25, 6159],
+            "status": "neutral"
+        },
+        {
+            "id": 4,
+            "name": "Рейвей стейшн",
+            "coords": [2073.5, 5069.25],
+            "status": "neutral"
+        },
+        {
+            "id": 5,
+            "name": "Резервний двір",
+            "coords": [1215.75, 2538],
+            "status": "neutral"
+        },
+        {
+            "id": 6,
+            "name": "Ферма",
+            "coords": [2214, 1453.25],
+            "status": "neutral"
+        },
+        {
+            "id": 7,
+            "name": "Школа",
+            "coords": [3225.75, 2134],
+            "status": "neutral"
+        },
+        {
+            "id": 8,
+            "name": "Завод",
+            "coords": [3496.5, 5047.5],
+            "status": "neutral"
+        },
+        {
+            "id": 9,
+            "name": "Мілітари",
+            "coords": [2061.75, 3661],
+            "status": "neutral"
+        },
+        {
+            "id": 10,
+            "name": "Стройка",
+            "coords": [1111.5, 5316.75],
+            "status": "neutral"
+        },
+        {
+            "id": 11,
+            "name": "Складский комплекс",
+            "coords": [1888, 9002.5],
+            "status": "neutral"
+        }
+    ],
+    sergeevka: [
+        {
+            "id": 1,
+            "name": "Окопи",
+            "coords": [7259, 4150.75],
+            "status": "neutral"
+        },
+        {
+            "id": 2,
+            "name": "Західний граничний аванпост",
+            "coords": [7875.5, 1369.75],
+            "status": "neutral"
+        },
+        {
+            "id": 3,
+            "name": "Східний граничний аванпост",
+            "coords": [6582.75, 8715.5],
+            "status": "neutral"
+        },
+        {
+            "id": 4,
+            "name": "Завод",
+            "coords": [5421.75, 8143],
+            "status": "neutral"
+        },
+        {
+            "id": 5,
+            "name": "Колгосп",
+            "coords": [7712.25, 7660.25],
+            "status": "neutral"
+        },
+        {
+            "id": 6,
+            "name": "Заправка",
+            "coords": [8253.75, 5065.25],
+            "status": "neutral"
+        },
+        {
+            "id": 7,
+            "name": "Опорний пункт",
+            "coords": [8753, 2979.5],
+            "status": "neutral"
+        },
+        {
+            "id": 8,
+            "name": "Ферма",
+            "coords": [5252.75, 2995.25],
+            "status": "neutral"
+        },
+        {
+            "id": 9,
+            "name": "Залізнична станція",
+            "coords": [6647, 2241.5],
+            "status": "neutral"
+        },
+        {
+            "id": 10,
+            "name": "Школа",
+            "coords": [5121, 4668.25],
+            "status": "neutral"
+        },
+        {
+            "id": 11,
+            "name": "Буд. Майданчик",
+            "coords": [4771.25, 6264.5],
+            "status": "neutral"
+        },
+        {
+            "id": 12,
+            "name": "Склади",
+            "coords": [6969, 6132.5],
+            "status": "neutral"
+        }
+    ],
+    satellite: [] // Для Аэропорта точек нет
+};
+// --- КОНЕЦ ДАННЫХ ---
+
 
 function changeLanguage() {
     currentLang = document.getElementById('language').value;
@@ -98,10 +242,9 @@ try {
         maxBoundsViscosity: 1.0
     });
     console.log('Map initialized successfully');
-
-    // --- ИЗМЕНЕНИЕ 2: Инициализируем слой ЗДЕСЬ, ПОСЛЕ создания карты ---
+    
+    // Инициализируем слой ЗДЕСЬ, ПОСЛЕ создания карты
     pointLayer = L.layerGroup().addTo(map);
-    // --- КОНЕЦ ---
 
 } catch (error) {
     console.error('Error initializing map:', error);
@@ -195,11 +338,7 @@ map.on('zoomend', drawGrid);
 
 
 function changeLayer() {
-    // --- ИЗМЕНЕНИЕ 3: Добавил проверку на существование pointLayer ---
     if (pointLayer) pointLayer.clearLayers(); // Очищаем маркеры
-    tempPoints = []; // Очищаем массив
-    if (isAddPointMode) toggleAddPointMode(); // Выключаем режим
-    // --- КОНЕЦ ---
 
     const layer = document.getElementById('layer').value;
     map.removeLayer(currentLayer);
@@ -212,6 +351,10 @@ function changeLayer() {
         map.options.crs = L.CRS.Simple;
         map.setMaxBounds(udachneBounds);
         showNotification(translations[currentLang].layerOptions.udachne + ' загружена');
+        
+        // --- ОТРИСОВЫВАЕМ ТОЧКИ ДЛЯ УДАЧНОГО ---
+        drawStrategicPoints(mapPointsData.udachne); 
+        
     } else if (layer === 'sergeevka') {
         mapHeight = 10240;
         mapWidth = 10240;
@@ -220,6 +363,10 @@ function changeLayer() {
         map.options.crs = L.CRS.Simple;
         map.setMaxBounds(sergeevkaBounds);
         showNotification(translations[currentLang].layerOptions.sergeevka + ' загружена');
+
+        // --- ОТРИСОВЫВАЕМ ТОЧКИ ДЛЯ СЕРГЕЕВКИ ---
+        drawStrategicPoints(mapPointsData.sergeevka);
+        
     } else if (layer === 'satellite') {
         mapHeight = 4352;
         mapWidth = 4352;
@@ -228,6 +375,7 @@ function changeLayer() {
         map.options.crs = L.CRS.Simple;
         map.setMaxBounds(donairBounds);
         showNotification(translations[currentLang].layerOptions.satellite + ' загружена');
+        // (Тут точки не рисуем)
     }
 
     try {
@@ -243,7 +391,7 @@ function changeLayer() {
     updateTexts();
 }
 
-// Вся логика истории - Удалена
+// Логика истории (пока пустая)
 let guidances = {
     udachne: [],
     sergeevka: [],
@@ -258,7 +406,6 @@ function runRenameHistoryItem(event) {}
 function runRenameHistoryItemFocus(i) {}
 
 function loadHistoryItems() {
-    // Очистил функцию, чтобы она ничего не делала, но не вызывала ошибок
     document.getElementById('history-list').innerHTML = "";
 }
 loadHistoryItems();
@@ -267,7 +414,6 @@ function loadPointsFrom(i) {}
 
 
 function clearMap() {
-    // Очистил функцию
     document.getElementById('result').innerText = '';
     document.getElementById('result-panel').classList.remove('active');
 }
@@ -319,7 +465,7 @@ document.getElementById('main-modal').addEventListener('click', (e) => {
 let deviceMode = 'pc';
 let activeMode = null;
 
-// --- ОБНОВЛЕННАЯ ФУНКЦИЯ ---
+// --- ОБНОВЛЕННАЯ ФУНКЦИЯ (убран режим админа) ---
 function setDevice(mode) {
     deviceMode = mode;
     toggleMainMenu();
@@ -330,23 +476,8 @@ function setDevice(mode) {
         map.off('click');
         
         map.on('click', (e) => {
-            if (isAddPointMode) {
-                // РЕЖИМ АДМИНА (МОБ)
-                const pointName = prompt(translations[currentLang].promptPointName || 'Введите имя точки:');
-                if (pointName) {
-                    const newPoint = {
-                        id: tempPoints.length + 1,
-                        name: pointName,
-                        coords: [e.latlng.lat, e.latlng.lng],
-                        status: 'neutral'
-                    };
-                    tempPoints.push(newPoint);
-                    createPointMarker(newPoint.name, e.latlng);
-                }
-            } else {
-                // Обычный клик (мобильный)
-                console.log('Mobile map click');
-            }
+            // Обычный клик (мобильный)
+            console.log('Mobile map click at', e.latlng);
         });
 
         showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].mobileBtn);
@@ -361,24 +492,9 @@ function setDevice(mode) {
         });
         
         map.on('click', (e) => {
-            if (isAddPointMode) {
-                // РЕЖИМ АДМИНА (ПК)
-                const pointName = prompt(translations[currentLang].promptPointName || 'Введите имя точки:');
-                if (pointName) {
-                    const newPoint = {
-                        id: tempPoints.length + 1, // Простой ID
-                        name: pointName,
-                        coords: [e.latlng.lat, e.latlng.lng],
-                        status: 'neutral' // Статус по умолчанию
-                    };
-                    tempPoints.push(newPoint);
-                    createPointMarker(newPoint.name, e.latlng);
-                }
-            } else {
-                // Обычный клик (ПК)
-                console.log('PC left-click detected at', e.latlng);
-                // Сюда будем добавлять логику для выбора точек
-            }
+            // Обычный клик (ПК)
+            console.log('PC left-click detected at', e.latlng);
+            // Сюда будем добавлять логику для выбора точек
         });
 
         showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].pcBtn);
@@ -439,24 +555,14 @@ updateThemeOptions();
 updateLanguageOptions();
 drawGrid();
 
-// --- НОВЫЕ ФУНКЦИИ В КОНЦЕ ФАЙЛА ---
+// --- ВЫЗОВ НОВОЙ ФУНКЦИИ ---
+// Отрисовываем точки для "Удачного" (т.к. она по умолчанию)
+drawStrategicPoints(mapPointsData.udachne);
 
-function toggleAddPointMode() {
-    isAddPointMode = !isAddPointMode; // Переключаем true/false
-    const btn = document.getElementById('add-point-mode-btn');
-    
-    if (isAddPointMode) {
-        btn.classList.add('active'); // Делаем кнопку "активной" (загорится)
-        showNotification('Режим добавления точек АКТИВИРОВАН');
-        map.getContainer().style.cursor = 'crosshair'; // Меняем курсор
-    } else {
-        btn.classList.remove('active');
-        showNotification('Режим добавления точек ВЫКЛЮЧЕН');
-        map.getContainer().style.cursor = ''; // Возвращаем курсор
-    }
-}
 
-// Эта функция создает сам маркер (желтый круг + надпись)
+// --- НОВЫЕ И ИЗМЕНЕННЫЕ ФУНКЦИИ ---
+
+// Эта функция создает 1 маркер (желтый круг + надпись)
 function createPointMarker(name, latlng) {
     // 1. Желтый круг
     const marker = L.circleMarker(latlng, {
@@ -476,21 +582,17 @@ function createPointMarker(name, latlng) {
     });
 }
 
-// Эта функция "экспортирует" данные
-function exportPoints() {
-    if (tempPoints.length === 0) {
-        showNotification('Вы не добавили ни одной точки');
-        return;
-    }
-
-    // Форматируем в красивый JSON
-    const jsonOutput = JSON.stringify(tempPoints, null, 2); 
+// --- НОВАЯ ФУНКЦИЯ ---
+// Отрисовывает ВСЕ точки из переданного массива
+function drawStrategicPoints(pointsArray) {
+    if (!pointLayer) return; // Защита, если слой еще не создан
     
-    console.log('--- ВАШИ ТОЧКИ (скопируйте этот код) ---');
-    console.log(jsonOutput);
+    pointLayer.clearLayers(); // Очищаем старые
     
-    // Показываем в консоли (F12) и в окне "результата" на сайте
-    showNotification('Точки выведены в консоль (F12) и в панель результата.');
-    document.getElementById('result').innerHTML = `<pre style="color: white; max-height: 200px; overflow-y: auto;">${jsonOutput}</pre>`;
-    document.getElementById('result-panel').classList.add('active');
+    // Проходим по массиву и рисуем каждую точку
+    pointsArray.forEach(point => {
+        // Убедимся, что coords это latlng
+        const latlng = { lat: point.coords[0], lng: point.coords[1] };
+        createPointMarker(point.name, latlng);
+    });
 }
