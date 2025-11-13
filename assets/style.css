@@ -709,7 +709,7 @@ label {
     text-shadow: black 0px 0px 1px;
 }
 
-/* ВОТ ДОБАВЛЕННЫЙ СТИЛЬ */
+/* Стиль для названий точек */
 .strategic-point-label {
     background: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
     color: white;
@@ -718,4 +718,25 @@ label {
     font-weight: bold;
     font-size: 14px;
     text-shadow: 1px 1px 2px black; /* Тень для читаемости */
+}
+
+/* --- НОВЫЕ СТИЛИ --- */
+.kshm-icon {
+    background: #00BFFF; /* Синий */
+    border: 2px solid #FFFFFF;
+    width: 15px;
+    height: 15px;
+    box-shadow: 0 0 5px #FFF;
+    border-radius: 2px; /* Квадрат */
+}
+
+.signal-line-red {
+    stroke: #FF0000;
+    stroke-width: 3;
+    stroke-dasharray: 5, 5;
+}
+
+.signal-line-blue {
+    stroke: #00BFFF;
+    stroke-width: 3;
 }
