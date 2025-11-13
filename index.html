@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta property="og:title" content="Тактическая карта для Arma Reforger">
+    <meta property="og:description"
+        content="Интерактивная тактическая карта для Arma Reforger.">
+    <meta property="og:url" content="https://mortar-calc.vercel.app/">
+
+    <title>Тактическая карта</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="shortcut icon" href="./assets/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="./assets/style.css">
+
+</head>
+
+<body theme="dark-green">
+    <div id="map"></div>
+
+    <div id="main-modal" style="display: none;">
+        <span id="toggleMenuLabel" onclick="toggleMainMenu();">нажмите за границей меню чтобы его закрыть</span>
+        <br>
+        <div id="menu-container">
+            <div id="menu-sidebar">
+                <div class="menu-nav-item active" onclick="showMenuSection('setup-section')"
+                    data-section="setup-section">
+                    <i class="fas fa-gears"></i>
+                    <span id="nav-setup"></span>
+                </div>
+                <div class="menu-nav-item" onclick="showMenuSection('device-section')" data-section="device-section">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span id="nav-device"></span>
+                </div>
+                <div class="menu-nav-item" onclick="showMenuSection('info-section')" data-section="info-section">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="nav-info"></span>
+                </div>
+            </div>
+
+            <div id="menu-content">
+                <div id="setup-section" class="menu-section active">
+                    <h2><i class="fas fa-gears"></i><br> <span id="setup-title"></span></h2>
+                    
+                    <div class="military-form-group">
+                        <label class="military-label" for="language" id="language-label"></label>
+                        <select id="language" class="military-select" onchange="changeLanguage()">
+                            <option value="ru"></option>
+                            <option selected value="uk"></option>
+                            <option value="en"></option>
+                        </select>
+                    </div>
+                    <div class="military-form-group">
+                        <label class="military-label" for="layer" id="layer-label"></label>
+                        <select id="layer" class="military-select" onchange="changeLayer()">
+                            <option value="udachne"></option>
+                            <option value="sergeevka"></option>
+                            <option value="satellite"></option>
+                        </select>
+                    </div>
+                    <div class="military-form-group">
+                        <label class="checkbox-label" for="grid-toggle" id="grid-toggle-label"></label>
+                        <input type="checkbox" id="grid-toggle" class="military-checkbox" checked
+                            onchange="toggleGrid()">
+                    </div>
+                    <div class="military-form-group">
+                        <label class="military-label" for="theme" id="theme-label"></label>
+                        <select id="theme" class="military-select">
+                            <option value="dark-green"></option>
+                            <option value="light-green"></option>
+                            <option value="dark-red"></option>
+                            <option value="light-red"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="device-section" class="menu-section">
+                    <h2><i class="fas fa-mobile-alt"></i><br> <span id="device-title"></span></h2>
+                    <div class="military-form-group">
+                        <button class="military-btn" onclick="setDevice('pc')">
+                            <i class="fas fa-keyboard"></i> <span id="pc-btn"></span>
+                        </button>
+                        <button class="military-btn" onclick="setDevice('mobile')">
+                            <i class="fas fa-hand"></i> <span id="mobile-btn"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="info-section" class="menu-section">
+                    <h2><i class="fas fa-info-circle"></i><br> <span id="info-title"></span></h2>
+                    <div id="info-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="history-panel">
+        <span id="history-title"></span><br />
+        <span id="onmap-history"></span>
+        <div id="history-list"></div>
+    </div>
+    <div class="controls">
+        <button id="toggleHistoryBtn" onclick="toggleHistory();">
+            <i class="fa fa-star"></i>
+        </button>
+        <button id="main-menu-btn" onclick="toggleMainMenu()" title="Открыть меню">
+            <i class="fas fa-cog"></i>
+        </button>
+    </div>
+    <div id="result-panel">
+        <button class="close-btn" onclick="closeResult()">&times;</button>
+        <div id="result"></div>
+    </div>
+    <div id="mobile-buttons">
+        <button class="close-btn" id="mobile-close-btn" onclick="toggleMobileButtons()">&times;</button>
+        </div>
+    <div id="credits"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="./assets/js/translations.js"></script>
+    <script src="./assets/js/index.js"></script>
+</body>
+
+</html>
