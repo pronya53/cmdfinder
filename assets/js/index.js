@@ -14,36 +14,36 @@ const KSHM_RANGE = 2000; // 2км (КШМ -> Точка)
 const POINT_RANGE = 2000; // 1км (Точка -> Точка)
 const POINT_TO_KSHM_RANGE = 2000; // 2км (Точка -> КШМ)
 
-// --- ОБЪЕКТ СО ВСЕМИ ДАННЫМИ ТОЧЕК ---
+// --- ОБЪЕКТ СО ВСЕМИ ДАННЫМИ ТОЧЕК (БЕЗ ИМЕН) ---
 const mapPointsData = {
     udachne: [
-        { "id": 1, "name": "Торгова Площа", "coords": [2685, 7983.25], "status": "neutral" },
-        { "id": 2, "name": "Заправка", "coords": [1172, 7524.25], "status": "neutral" },
-        { "id": 3, "name": "Карго", "coords": [2172.25, 6159], "status": "neutral" },
-        { "id": 4, "name": "Рейвей стейшн", "coords": [2073.5, 5069.25], "status": "neutral" },
-        { "id": 5, "name": "Резервний двір", "coords": [1215.75, 2538], "status": "neutral" },
-        { "id": 6, "name": "Ферма", "coords": [2214, 1453.25], "status": "neutral" },
-        { "id": 7, "name": "Школа", "coords": [3225.75, 2134], "status": "neutral" },
-        { "id": 8, "name": "Завод", "coords": [3496.5, 5047.5], "status": "neutral" },
-        { "id": 9, "name": "Мілітари", "coords": [2061.75, 3661], "status": "neutral" },
-        { "id": 10, "name": "Стройка", "coords": [1111.5, 5316.75], "status": "neutral" },
-        { "id": 11, "name": "Складский комплекс", "coords": [1888, 9002.5], "status": "neutral" }
+        { "id": 1, "coords": [2685, 7983.25], "status": "neutral" },
+        { "id": 2, "coords": [1172, 7524.25], "status": "neutral" },
+        { "id": 3, "coords": [2172.25, 6159], "status": "neutral" },
+        { "id": 4, "coords": [2073.5, 5069.25], "status": "neutral" },
+        { "id": 5, "coords": [1215.75, 2538], "status": "neutral" },
+        { "id": 6, "coords": [2214, 1453.25], "status": "neutral" },
+        { "id": 7, "coords": [3225.75, 2134], "status": "neutral" },
+        { "id": 8, "coords": [3496.5, 5047.5], "status": "neutral" },
+        { "id": 9, "coords": [2061.75, 3661], "status": "neutral" },
+        { "id": 10, "coords": [1111.5, 5316.75], "status": "neutral" },
+        { "id": 11, "coords": [1888, 9002.5], "status": "neutral" }
     ],
     sergeevka: [
-        { "id": 1, "name": "Окопи", "coords": [7259, 4150.75], "status": "neutral" },
-        { "id": 2, "name": "Західний граничний аванпост", "coords": [7875.5, 1369.75], "status": "neutral" },
-        { "id": 3, "name": "Східний граничний аванпост", "coords": [6582.75, 8715.5], "status": "neutral" },
-        { "id": 4, "name": "Завод", "coords": [5421.75, 8143], "status": "neutral" },
-        { "id": 5, "name": "Колгосп", "coords": [7712.25, 7660.25], "status": "neutral" },
-        { "id": 6, "name": "Заправка", "coords": [8253.75, 5065.25], "status": "neutral" },
-        { "id": 7, "name": "Опорний пункт", "coords": [8753, 2979.5], "status": "neutral" },
-        { "id": 8, "name": "Ферма", "coords": [5252.75, 2995.25], "status": "neutral" },
-        { "id": 9, "name": "Залізнична станція", "coords": [6647, 2241.5], "status": "neutral" },
-        { "id": 10, "name": "Школа", "coords": [5121, 4668.25], "status": "neutral" },
-        { "id": 11, "name": "Буд. Майданчик", "coords": [4771.25, 6264.5], "status": "neutral" },
-        { "id": 12, "name": "Склади", "coords": [6969, 6132.5], "status": "neutral" }
+        { "id": 1, "coords": [7259, 4150.75], "status": "neutral" },
+        { "id": 2, "coords": [7875.5, 1369.75], "status": "neutral" },
+        { "id": 3, "coords": [6582.75, 8715.5], "status": "neutral" },
+        { "id": 4, "coords": [5421.75, 8143], "status": "neutral" },
+        { "id": 5, "coords": [7712.25, 7660.25], "status": "neutral" },
+        { "id": 6, "coords": [8253.75, 5065.25], "status": "neutral" },
+        { "id": 7, "coords": [8753, 2979.5], "status": "neutral" },
+        { "id": 8, "coords": [5252.75, 2995.25], "status": "neutral" },
+        { "id": 9, "coords": [6647, 2241.5], "status": "neutral" },
+        { "id": 10, "coords": [5121, 4668.25], "status": "neutral" },
+        { "id": 11, "coords": [4771.25, 6264.5], "status": "neutral" },
+        { "id": 12, "coords": [6969, 6132.5], "status": "neutral" }
     ],
-    satellite: [] // Для Аэропорта точек нет
+    satellite: []
 };
 // --- КОНЕЦ ДАННЫХ ---
 
@@ -51,15 +51,24 @@ const mapPointsData = {
 function changeLanguage() {
     currentLang = document.getElementById('language').value;
     document.title = translations[currentLang].title;
-    updateTexts();
+    updateTexts(); // Обновляет весь текст, кроме названий точек
     updateLayerOptions();
     updateLanguageOptions();
     showMenuSection(document.querySelector('.menu-nav-item.active').getAttribute('data-section'));
-    updateStatusPanel(); // Обновить текст в панели
+
+    // --- ОБНОВЛЕНИЕ НАЗВАНИЙ ТОЧЕК НА КАРТЕ ---
+    const mapName = document.getElementById('layer').value;
+    if (currentMapPoints.length > 0) {
+        // Обновляем имена в текущем состоянии
+        currentMapPoints.forEach(p => {
+            p.name = translations[currentLang].pointNames[mapName][p.id] || `Point ${p.id}`;
+        });
+        redrawPoints(); // Перерисовываем маркеры с новыми именами
+        updateSignalRange(); // Обновляем инфо-панель (где тоже есть имена)
+    }
 }
 
-// Функция Истории УДАЛЕНА
-// function toggleHistory() { ... }
+// Функции Истории УДАЛЕНЫ
 
 function updateTexts() {
     const t = translations[currentLang];
@@ -76,17 +85,11 @@ function updateTexts() {
     document.getElementById('nav-info').textContent = t.navInfo;
     document.getElementById('device-title').textContent = t.navDevice;
     document.getElementById('info-title').textContent = t.navInfo;
-    // document.getElementById('history-title').textContent = t.historyTitle; // Удалено
     document.getElementById('info-content').innerHTML = t.infoText;
     document.getElementById('theme-label').innerHTML = t.themeLabel;
-    // document.getElementById('onmap-history').textContent = ... // Удалено
-
     document.getElementById('toggleMenuLabel').textContent = t.toggleMenuLabel.toUpperCase();
-
-    // Обновляем title у новых кнопок
     document.getElementById('toggle-points-mode-btn').title = t.togglePointsModeTitle;
     document.getElementById('toggle-kshm-mode-btn').title = t.toggleKshmModeTitle;
-    // Обновляем popup у КШМ, если он есть
     if (kshmMarker) kshmMarker.bindPopup(translations[currentLang].kshmPopup);
 }
 
@@ -302,19 +305,10 @@ function changeLayer() {
         console.error('Error adding layer:', error);
     }
     drawGrid();
-
-    // loadHistoryItems(); // Удалено
     updateTexts();
 }
 
 // Логика истории УДАЛЕНА
-// let guidances = { ... }
-// function saveToHistory() { ... }
-// ...
-// function loadHistoryItems() { ... }
-// loadHistoryItems();
-// function loadPointsFrom(i) {}
-
 
 function clearMap() {
     // Сбрасываем состояние точек
@@ -381,7 +375,11 @@ let activeMode = null; // для мобильного
 
 function setDevice(mode) {
     deviceMode = mode;
-    // toggleMainMenu(); // Убрал, чтобы не закрывалось при вызове по умолчанию
+    
+    // Не закрываем меню, если вызвано при загрузке
+    if (mode === 'mobile') { 
+        toggleMainMenu(); 
+    }
 
     if (mode === 'mobile') {
         document.getElementById('mobile-buttons').classList.add('active');
@@ -418,9 +416,6 @@ function setDevice(mode) {
             // Левый клик (ПК) - ничего не делаем, т.к. клик на маркеры
             console.log('PC left-click detected at', e.latlng);
         });
-
-        // Не показываем уведомление при загрузке, только при клике
-        // showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].pcBtn);
     }
 }
 // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
@@ -553,7 +548,7 @@ function createPointMarker(point) {
         fillOpacity: 0.5
     }).addTo(pointLayer);
 
-    marker.bindTooltip(point.name, {
+    marker.bindTooltip(point.name, { // point.name теперь содержит перевод
         permanent: true,
         direction: 'top',
         offset: [0, -10],
@@ -577,10 +572,16 @@ function redrawPoints() {
 
 // Инициализирует и отрисовывает точки при смене карты
 function drawStrategicPoints(pointsArray) {
-    if (!pointLayer) return; 
+    if (!pointLayer || !pointsArray) return; 
+    const mapName = document.getElementById('layer').value;
     
-    // Глубокое копирование, чтобы сбросить состояние
+    // Глубокое копирование
     currentMapPoints = JSON.parse(JSON.stringify(pointsArray));
+    
+    // Внедряем имена
+    currentMapPoints.forEach(p => {
+        p.name = translations[currentLang].pointNames[mapName]?.[p.id] || `Point ${p.id}`;
+    });
     
     redrawPoints(); // Отрисовываем
 }
@@ -668,9 +669,8 @@ function updateSignalRange() {
         neutralPoints.forEach(nPoint => {
             const dist = calculateDistance(cPoint.coords, nPoint.coords);
             if (dist <= POINT_RANGE) {
-                // Проверяем, что она еще не стала 'available' от КШМ
-                if (nPoint.status === 'neutral') { 
-                    nPoint.status = 'available';
+                if (nPoint.status === 'neutral') { // Проверяем, что она еще не 'available'
+                     nPoint.status = 'available';
                 }
                 L.polyline([cPoint.coords, nPoint.coords], { className: 'signal-line-red' }).addTo(signalLinesLayer);
             }
@@ -679,19 +679,21 @@ function updateSignalRange() {
 
     // 2. Логика КШМ
     let kshmPowerDist = 0;
-    let kshmActivePoints = []; // Теперь массив имен
+    let kshmActivePointNames = []; // Массив имен
     
     if (kshmMarker) {
         const kshmPos = kshmMarker.getLatLng();
         let isKshmPowered = false;
         let minPowerDist = Infinity;
 
-        // 2a. Проверяем, "запитана" ли КШМ (2км от синей точки)
-        capturedPoints.forEach(cPoint => {
-            const distToKshm = calculateDistance(cPoint.coords, kshmPos);
-            if (distToKshm <= POINT_TO_KSHM_RANGE) { // Используем новую константу
+        // 2a. Проверяем, "запитана" ли КШМ (2км от ЛЮБОЙ активной точки) - ИСПРАВЛЕНО
+        const livePoints = currentMapPoints.filter(p => p.status === 'captured' || p.status === 'available');
+        
+        livePoints.forEach(lPoint => {
+            const distToKshm = calculateDistance(lPoint.coords, kshmPos);
+            if (distToKshm <= POINT_TO_KSHM_RANGE) {
                 isKshmPowered = true;
-                L.polyline([cPoint.coords, kshmPos], { className: 'signal-line-blue' }).addTo(signalLinesLayer);
+                L.polyline([lPoint.coords, kshmPos], { className: 'signal-line-blue' }).addTo(signalLinesLayer);
                 
                 if (distToKshm < minPowerDist) {
                     minPowerDist = distToKshm;
@@ -704,13 +706,12 @@ function updateSignalRange() {
         // 2b. Если запитана, раздаем сигнал (2км)
         if (isKshmPowered) {
             currentMapPoints.forEach(p => {
-                // Ищем точки, которые *все еще* нейтральные
                 if (p.status === 'neutral') {
                     const distFromKshm = calculateDistance(kshmPos, p.coords);
                     if (distFromKshm <= KSHM_RANGE) {
                         p.status = 'available'; // Делаем красной
                         L.polyline([kshmPos, p.coords], { className: 'signal-line-red' }).addTo(signalLinesLayer);
-                        kshmActivePoints.push(p.name); // Добавляем имя
+                        kshmActivePointNames.push(p.name); // Добавляем имя
                     }
                 }
             });
@@ -718,9 +719,8 @@ function updateSignalRange() {
     }
 
     redrawPoints(); // Перерисовываем все точки с новыми цветами
-    updateStatusPanel(kshmPowerDist, kshmActivePoints); // Обновляем инфо-панель
+    updateStatusPanel(kshmPowerDist, kshmActivePointNames); // Обновляем инфо-панель
 }
 
 // --- ЗАПУСК РЕЖИМА ПК ПО УМОЛЧАНИЮ ---
 setDevice('pc');
-
