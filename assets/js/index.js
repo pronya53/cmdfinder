@@ -2,6 +2,12 @@ console.log('Starting map initialization...');
 
 let currentLang = 'uk';
 
+// --- ДОБАВЛЕННЫЕ ПЕРЕМЕННЫЕ ---
+let isAddPointMode = false; // Флаг, включен ли режим добавления точек
+let tempPoints = []; // Массив для временного хранения точек
+let pointLayer = L.layerGroup().addTo(map); // Слой, где будут маркеры
+// --- КОНЕЦ ---
+
 function changeLanguage() {
     currentLang = document.getElementById('language').value;
     document.title = translations[currentLang].title;
@@ -10,9 +16,6 @@ function changeLanguage() {
     // updateMortarOptions(); // Удалено
     updateLanguageOptions();
     showMenuSection(document.querySelector('.menu-nav-item.active').getAttribute('data-section'));
-    // document.getElementById('distance').placeholder = currentLang === 'ru' ? 'например, 1350' : (currentLang === 'uk' ? 'наприклад, 1350' : 'e.g., 1350'); // Удалено
-    // document.getElementById('h_mortar').placeholder = currentLang === 'ru' ? 'например, 170' : (currentLang === 'uk' ? 'наприклад, 170' : 'e.g., 170'); // Удалено
-    // document.getElementById('h_target').placeholder = currentLang === 'ru' ? 'например, 120' : (currentLang === 'uk' ? 'наприклад, 120' : 'e.g., 120'); // Удалено
 }
 
 function toggleHistory() {
@@ -24,33 +27,22 @@ function updateTexts() {
     const t = translations[currentLang];
     document.getElementById('nav-setup').textContent = t.navSetup;
     document.getElementById('setup-title').textContent = t.setupTitle;
-    // document.getElementById('mortar-label').textContent = t.mortarLabel; // Удалено
-    // document.getElementById('distance-label').textContent = t.distanceLabel; // Удалено
-    // document.getElementById('h_mortar-label').textContent = t.h_mortarLabel; // Удалено
-    // document.getElementById('h_target-label').textContent = t.h_targetLabel; // Удалено
-    // document.getElementById('calculate-manual-btn').textContent = t.calculateManualBtn; // Удалено
     document.getElementById('layer-label').textContent = t.layerLabel;
     document.getElementById('grid-toggle-label').textContent = t.gridToggleLabel;
     document.getElementById('language-label').textContent = t.languageLabel;
     document.getElementById('pc-btn').textContent = t.pcBtn;
     document.getElementById('mobile-btn').textContent = t.mobileBtn;
-    // document.getElementById('mortar-btn-text').textContent = t.mortarBtn; // Удалено
-    // document.getElementById('target-btn-text').textContent = t.targetBtn; // Удалено
     document.getElementById('main-menu-btn').title = t.settingsTitle;
     document.getElementById('credits').textContent = t.credits;
     document.getElementById('nav-device').textContent = t.navDevice;
-    // document.getElementById('nav-calc').textContent = t.navCalc; // Удалено
     document.getElementById('nav-info').textContent = t.navInfo;
     document.getElementById('device-title').textContent = t.navDevice;
-    // document.getElementById('calc-title').textContent = t.navCalc; // Удалено
     document.getElementById('info-title').textContent = t.navInfo;
     document.getElementById('history-title').textContent = t.historyTitle;
     document.getElementById('info-content').innerHTML = t.infoText;
     document.getElementById('theme-label').innerHTML = t.themeLabel;
     document.getElementById('onmap-history').textContent = t.onMapHistory + t.layerOptions[currentLayer._url.split(".")[1].replace("/assets/images/", "")]
     document.getElementById('toggleMenuLabel').textContent = t.toggleMenuLabel.toUpperCase();
-    // if (mortarMarker) mortarMarker.bindPopup(t.mortarPopup); // Удалено
-    // if (targetMarker) targetMarker.bindPopup(t.targetPopup); // Удалено
 }
 
 function updateLayerOptions() {
@@ -69,8 +61,6 @@ function updateThemeOptions() {
     select.options[2].text = t.themes.darkred;
     select.options[3].text = t.themes.lightred;
 }
-
-// function updateMortarOptions() { ... } // Удалено
 
 function updateLanguageOptions() {
     const t = translations[currentLang];
@@ -199,9 +189,14 @@ function drawGrid() {
 // Обновление сетки при зуме
 map.on('zoomend', drawGrid);
 
-// let tempguid = {} // Удалено (связано с историей)
 
 function changeLayer() {
+    // --- ДОБАВЛЕННЫЕ СТРОКИ ---
+    pointLayer.clearLayers(); // Очищаем маркеры
+    tempPoints = []; // Очищаем массив
+    if (isAddPointMode) toggleAddPointMode(); // Выключаем режим
+    // --- КОНЕЦ ---
+
     const layer = document.getElementById('layer').value;
     map.removeLayer(currentLayer);
 
@@ -239,26 +234,10 @@ function changeLayer() {
     }
     drawGrid();
 
-    // Очищаем маркеры при смене карты - Удалено
-    // if (mortarMarker) { ... }
-    // if (targetMarker) { ... }
-    
     document.getElementById('result-panel').classList.remove('active');
-    loadHistoryItems(); // Оставил вызов, но функция теперь пустая
+    loadHistoryItems(); 
     updateTexts();
-    // tempguid = {} // Удалено
 }
-
-// Маркеры - Удалено
-// let mortarMarker = null;
-// let targetMarker = null;
-
-// Данные минометов - Удалено
-// const uaMortarData = [ ... ];
-// const ruMortarData = [ ... ];
-// const gradMortarData = [ ... ];
-
-// function interpolate(data, dist) { ... } // Удалено
 
 // Вся логика истории - Удалена
 let guidances = {
@@ -276,30 +255,15 @@ function runRenameHistoryItemFocus(i) {}
 
 function loadHistoryItems() {
     // Очистил функцию, чтобы она ничего не делала, но не вызывала ошибок
-    // В будущем здесь будет логика для новой истории (КШМ и точек)
-    
-    // if (localStorage.getItem("mortar-calc") != null) { ... } // Удалено
     document.getElementById('history-list').innerHTML = "";
-    // guidances[...].forEach(m => { ... }) // Удалено
 }
 loadHistoryItems();
 
 function loadPointsFrom(i) {}
 
-// Обработчики событий карты - Удалены
-// map.on('contextmenu', ...);
-// map.on('click', ...);
-
-// Функции расчетов - Удалены
-// function calculateFromMap() { ... }
-// function calculateManual() { ... }
 
 function clearMap() {
     // Очистил функцию
-    // if (mortarMarker) map.removeLayer(mortarMarker); // Удалено
-    // if (targetMarker) map.removeLayer(targetMarker); // Удалено
-    // mortarMarker = null; // Удалено
-    // targetMarker = null; // Удалено
     document.getElementById('result').innerText = '';
     document.getElementById('result-panel').classList.remove('active');
 }
@@ -351,43 +315,72 @@ document.getElementById('main-modal').addEventListener('click', (e) => {
 let deviceMode = 'pc';
 let activeMode = null;
 
+// --- ОБНОВЛЕННАЯ ФУНКЦИЯ ---
 function setDevice(mode) {
     deviceMode = mode;
-    // Закрываем главное меню
     toggleMainMenu();
 
     if (mode === 'mobile') {
         document.getElementById('mobile-buttons').classList.add('active');
         map.off('contextmenu');
         map.off('click');
-        // map.on('click', handleMobileClick); // Удалено
+        
         map.on('click', (e) => {
-            // Сюда можно будет добавить логику для мобильных
-            console.log('Mobile map click');
+            if (isAddPointMode) {
+                // РЕЖИМ АДМИНА (МОБ)
+                const pointName = prompt(translations[currentLang].promptPointName || 'Введите имя точки:');
+                if (pointName) {
+                    const newPoint = {
+                        id: tempPoints.length + 1,
+                        name: pointName,
+                        coords: [e.latlng.lat, e.latlng.lng],
+                        status: 'neutral'
+                    };
+                    tempPoints.push(newPoint);
+                    createPointMarker(newPoint.name, e.latlng);
+                }
+            } else {
+                // Обычный клик (мобильный)
+                console.log('Mobile map click');
+            }
         });
 
-        // Показываем уведомление
         showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].mobileBtn);
+    
     } else { // 'pc' mode
         document.getElementById('mobile-buttons').classList.remove('active');
         map.off('click');
         
-        // Удалил старые 'contextmenu' и 'click'
-        // Добавим новые, пустые обработчики для КШМ
         map.on('contextmenu', (e) => {
             console.log('PC right-click detected at', e.latlng);
             // Сюда будем добавлять логику для КШМ
         });
+        
         map.on('click', (e) => {
-            console.log('PC left-click detected at', e.latlng);
-            // Сюда будем добавлять логику для выбора точек
+            if (isAddPointMode) {
+                // РЕЖИМ АДМИНА (ПК)
+                const pointName = prompt(translations[currentLang].promptPointName || 'Введите имя точки:');
+                if (pointName) {
+                    const newPoint = {
+                        id: tempPoints.length + 1, // Простой ID
+                        name: pointName,
+                        coords: [e.latlng.lat, e.latlng.lng],
+                        status: 'neutral' // Статус по умолчанию
+                    };
+                    tempPoints.push(newPoint);
+                    createPointMarker(newPoint.name, e.latlng);
+                }
+            } else {
+                // Обычный клик (ПК)
+                console.log('PC left-click detected at', e.latlng);
+                // Сюда будем добавлять логику для выбора точек
+            }
         });
 
-
-        // Показываем уведомление
         showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].pcBtn);
     }
 }
+// --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
 
 // Функция уведомлений
 function showNotification(text) {
@@ -428,12 +421,7 @@ function toggleMobileButtons() {
     const mobileButtons = document.getElementById('mobile-buttons');
     mobileButtons.classList.remove('active');
     activeMode = null;
-    // document.getElementById('mortar-btn').classList.remove('active'); // Удалено
-    // document.getElementById('target-btn').classList.remove('active'); // Удалено
 }
-
-// function activateMode(mode) { ... } // Удалено
-// function handleMobileClick(e) { ... } // Удалено
 
 try {
     map.fitBounds(udachneBounds);
@@ -443,7 +431,62 @@ try {
 }
 updateTexts();
 updateLayerOptions();
-// updateMortarOptions(); // Удалено
 updateThemeOptions();
 updateLanguageOptions();
 drawGrid();
+
+// --- НОВЫЕ ФУНКЦИИ В КОНЦЕ ФАЙЛА ---
+
+function toggleAddPointMode() {
+    isAddPointMode = !isAddPointMode; // Переключаем true/false
+    const btn = document.getElementById('add-point-mode-btn');
+    
+    if (isAddPointMode) {
+        btn.classList.add('active'); // Делаем кнопку "активной" (загорится)
+        showNotification('Режим добавления точек АКТИВИРОВАН');
+        map.getContainer().style.cursor = 'crosshair'; // Меняем курсор
+    } else {
+        btn.classList.remove('active');
+        showNotification('Режим добавления точек ВЫКЛЮЧЕН');
+        map.getContainer().style.cursor = ''; // Возвращаем курсор
+    }
+}
+
+// Эта функция создает сам маркер (желтый круг + надпись)
+function createPointMarker(name, latlng) {
+    // 1. Желтый круг
+    const marker = L.circleMarker(latlng, {
+        radius: 8,
+        color: '#FFFF00', // Желтый
+        weight: 3,
+        fillColor: '#FFFF00',
+        fillOpacity: 0.5
+    }).addTo(pointLayer); // Добавляем на наш слой
+
+    // 2. Надпись
+    marker.bindTooltip(name, {
+        permanent: true,       // Показать навсегда
+        direction: 'top',      // Показать сверху
+        offset: [0, -10],      // Сдвиг от маркера
+        className: 'strategic-point-label' // Наш CSS-стиль
+    });
+}
+
+// Эта функция "экспортирует" данные
+function exportPoints() {
+    if (tempPoints.length === 0) {
+        showNotification('Вы не добавили ни одной точки');
+        return;
+    }
+
+    // Форматируем в красивый JSON
+    const jsonOutput = JSON.stringify(tempPoints, null, 2); 
+    
+    console.log('--- ВАШИ ТОЧКИ (скопируйте этот код) ---');
+    console.log(jsonOutput);
+    
+    // Показываем в консоли (F12) и в окне "результата" на сайте
+    showNotification('Точки выведены в консоль (F12) и в панель результата.');
+    document.getElementById('result').innerHTML = `<pre style="color: white; max-height: 200px; overflow-y: auto;">${jsonOutput}</pre>`;
+    document.getElementById('result-panel').classList.add('active');
+}
