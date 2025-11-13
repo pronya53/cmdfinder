@@ -11,7 +11,7 @@ let currentMode = 'none'; // 'none', 'points', 'kshm'
 
 // --- ОБНОВЛЕННЫЕ КОНСТАНТЫ ---
 const KSHM_RANGE = 2000; // 2км (КШМ -> Точка)
-const POINT_RANGE = 1000; // 1км (Точка -> Точка)
+const POINT_RANGE = 2000; // 1км (Точка -> Точка)
 const POINT_TO_KSHM_RANGE = 2000; // 2км (Точка -> КШМ)
 
 // --- ОБЪЕКТ СО ВСЕМИ ДАННЫМИ ТОЧЕК ---
@@ -723,3 +723,4 @@ function updateSignalRange() {
 
 // --- ЗАПУСК РЕЖИМА ПК ПО УМОЛЧАНИЮ ---
 setDevice('pc');
+
