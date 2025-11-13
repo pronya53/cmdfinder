@@ -9,8 +9,10 @@ let kshmIcon; // Иконка КШМ
 let currentMapPoints = []; // Тут будет храниться состояние точек (захвачено/нет)
 let currentMode = 'none'; // 'none', 'points', 'kshm'
 
-const KSHM_RANGE = 2000; // 2км
-const POINT_RANGE = 1000; // 1км
+// --- ОБНОВЛЕННЫЕ КОНСТАНТЫ ---
+const KSHM_RANGE = 2000; // 2км (КШМ -> Точка)
+const POINT_RANGE = 1000; // 1км (Точка -> Точка)
+const POINT_TO_KSHM_RANGE = 2000; // 2км (Точка -> КШМ)
 
 // --- ОБЪЕКТ СО ВСЕМИ ДАННЫМИ ТОЧЕК ---
 const mapPointsData = {
@@ -53,6 +55,7 @@ function changeLanguage() {
     updateLayerOptions();
     updateLanguageOptions();
     showMenuSection(document.querySelector('.menu-nav-item.active').getAttribute('data-section'));
+    updateStatusPanel(); // Обновить текст в панели
 }
 
 function toggleHistory() {
@@ -254,6 +257,7 @@ function changeLayer() {
     }
     deactivateModes();
     currentMapPoints = []; // Очищаем массив состояния
+    closeResult(); // Скрываем инфо-панель
 
     const layer = document.getElementById('layer').value;
     map.removeLayer(currentLayer);
@@ -300,7 +304,6 @@ function changeLayer() {
     }
     drawGrid();
 
-    document.getElementById('result-panel').classList.remove('active');
     loadHistoryItems(); 
     updateTexts();
 }
@@ -328,9 +331,6 @@ function loadPointsFrom(i) {}
 
 
 function clearMap() {
-    document.getElementById('result').innerText = '';
-    document.getElementById('result-panel').classList.remove('active');
-    
     // Сбрасываем состояние точек
     const currentLayerName = document.getElementById('layer').value;
     drawStrategicPoints(mapPointsData[currentLayerName]);
@@ -341,6 +341,9 @@ function clearMap() {
         map.removeLayer(kshmMarker);
         kshmMarker = null;
     }
+    
+    // Скрываем инфо-панель
+    closeResult();
 }
 
 // Функции главного меню
@@ -629,6 +632,31 @@ function placeKshm(latlng) {
     updateSignalRange(); // Пересчитываем сигналы
 }
 
+// --- НОВАЯ ФУНКЦИЯ ДЛЯ ИНФО-ПАНЕЛИ ---
+function updateStatusPanel(powerDist, activeCount) {
+    const t = translations[currentLang];
+    const panel = document.getElementById('result-panel');
+    const resultDiv = document.getElementById('result');
+
+    if (!kshmMarker) {
+        panel.classList.remove('active');
+        resultDiv.innerHTML = '';
+        return;
+    }
+
+    let powerText = '';
+    if (powerDist > 0) {
+        powerText = `${t.kshmPowerSource} ${powerDist.toFixed(0)}м`;
+    } else {
+        powerText = t.kshmNoPower;
+    }
+
+    let countText = `${t.kshmActivePoints} ${activeCount}`;
+    
+    resultDiv.innerHTML = `${powerText}<br>${countText}`;
+    panel.classList.add('active');
+}
+
 // --- ГЛАВНАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ---
 function updateSignalRange() {
     signalLinesLayer.clearLayers(); // Очищаем все старые линии
@@ -662,37 +690,46 @@ function updateSignalRange() {
         }
     });
 
-    // 2. Логика КШМ (2км)
-    if (!kshmMarker) {
-        redrawPoints(); // КШМ нет, просто перерисовываем точки
-        return;
-    }
+    // 2. Логика КШМ
+    let kshmPowerDist = 0;
+    let kshmActiveCount = 0;
+    
+    if (kshmMarker) {
+        const kshmPos = kshmMarker.getLatLng();
+        let isKshmPowered = false;
+        let minPowerDist = Infinity;
 
-    const kshmPos = kshmMarker.getLatLng();
-    let isKshmPowered = false;
-
-    // 2a. Проверяем, "запитана" ли КШМ (1км от синей точки)
-    capturedPoints.forEach(cPoint => {
-        const distToKshm = calculateDistance(cPoint.coords, kshmPos);
-        if (distToKshm <= POINT_RANGE) {
-            isKshmPowered = true;
-            L.polyline([cPoint.coords, kshmPos], { className: 'signal-line-blue' }).addTo(signalLinesLayer);
-        }
-    });
-
-    // 2b. Если запитана, раздаем сигнал (2км)
-    if (isKshmPowered) {
-        currentMapPoints.forEach(p => {
-            // Ищем точки, которые *все еще* нейтральные
-            if (p.status === 'neutral') {
-                const distFromKshm = calculateDistance(kshmPos, p.coords);
-                if (distFromKshm <= KSHM_RANGE) {
-                    p.status = 'available'; // Делаем красной
-                    L.polyline([kshmPos, p.coords], { className: 'signal-line-red' }).addTo(signalLinesLayer);
+        // 2a. Проверяем, "запитана" ли КШМ (2км от синей точки)
+        capturedPoints.forEach(cPoint => {
+            const distToKshm = calculateDistance(cPoint.coords, kshmPos);
+            if (distToKshm <= POINT_TO_KSHM_RANGE) {
+                isKshmPowered = true;
+                L.polyline([cPoint.coords, kshmPos], { className: 'signal-line-blue' }).addTo(signalLinesLayer);
+                
+                if (distToKshm < minPowerDist) {
+                    minPowerDist = distToKshm;
                 }
             }
         });
+
+        if (isKshmPowered) kshmPowerDist = minPowerDist;
+
+        // 2b. Если запитана, раздаем сигнал (2км)
+        if (isKshmPowered) {
+            currentMapPoints.forEach(p => {
+                // Ищем точки, которые *все еще* нейтральные
+                if (p.status === 'neutral') {
+                    const distFromKshm = calculateDistance(kshmPos, p.coords);
+                    if (distFromKshm <= KSHM_RANGE) {
+                        p.status = 'available'; // Делаем красной
+                        L.polyline([kshmPos, p.coords], { className: 'signal-line-red' }).addTo(signalLinesLayer);
+                        kshmActiveCount++; // Считаем
+                    }
+                }
+            });
+        }
     }
 
     redrawPoints(); // Перерисовываем все точки с новыми цветами
+    updateStatusPanel(kshmPowerDist, kshmActiveCount); // Обновляем инфо-панель
 }
