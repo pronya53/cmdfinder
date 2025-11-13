@@ -2,150 +2,44 @@ console.log('Starting map initialization...');
 
 let currentLang = 'uk';
 let pointLayer; // Слой для маркеров точек
+let signalLinesLayer; // Слой для линий связи
+let kshmMarker = null; // Маркер КШМ
+let kshmIcon; // Иконка КШМ
+
+let currentMapPoints = []; // Тут будет храниться состояние точек (захвачено/нет)
+let currentMode = 'none'; // 'none', 'points', 'kshm'
+
+const KSHM_RANGE = 2000; // 2км
+const POINT_RANGE = 1000; // 1км
 
 // --- ОБЪЕКТ СО ВСЕМИ ДАННЫМИ ТОЧЕК ---
 const mapPointsData = {
     udachne: [
-        {
-            "id": 1,
-            "name": "Торгова Площа",
-            "coords": [2685, 7983.25],
-            "status": "neutral"
-        },
-        {
-            "id": 2,
-            "name": "Заправка",
-            "coords": [1172, 7524.25],
-            "status": "neutral"
-        },
-        {
-            "id": 3,
-            "name": "Карго",
-            "coords": [2172.25, 6159],
-            "status": "neutral"
-        },
-        {
-            "id": 4,
-            "name": "Рейвей стейшн",
-            "coords": [2073.5, 5069.25],
-            "status": "neutral"
-        },
-        {
-            "id": 5,
-            "name": "Резервний двір",
-            "coords": [1215.75, 2538],
-            "status": "neutral"
-        },
-        {
-            "id": 6,
-            "name": "Ферма",
-            "coords": [2214, 1453.25],
-            "status": "neutral"
-        },
-        {
-            "id": 7,
-            "name": "Школа",
-            "coords": [3225.75, 2134],
-            "status": "neutral"
-        },
-        {
-            "id": 8,
-            "name": "Завод",
-            "coords": [3496.5, 5047.5],
-            "status": "neutral"
-        },
-        {
-            "id": 9,
-            "name": "Мілітари",
-            "coords": [2061.75, 3661],
-            "status": "neutral"
-        },
-        {
-            "id": 10,
-            "name": "Стройка",
-            "coords": [1111.5, 5316.75],
-            "status": "neutral"
-        },
-        {
-            "id": 11,
-            "name": "Складский комплекс",
-            "coords": [1888, 9002.5],
-            "status": "neutral"
-        }
+        { "id": 1, "name": "Торгова Площа", "coords": [2685, 7983.25], "status": "neutral" },
+        { "id": 2, "name": "Заправка", "coords": [1172, 7524.25], "status": "neutral" },
+        { "id": 3, "name": "Карго", "coords": [2172.25, 6159], "status": "neutral" },
+        { "id": 4, "name": "Рейвей стейшн", "coords": [2073.5, 5069.25], "status": "neutral" },
+        { "id": 5, "name": "Резервний двір", "coords": [1215.75, 2538], "status": "neutral" },
+        { "id": 6, "name": "Ферма", "coords": [2214, 1453.25], "status": "neutral" },
+        { "id": 7, "name": "Школа", "coords": [3225.75, 2134], "status": "neutral" },
+        { "id": 8, "name": "Завод", "coords": [3496.5, 5047.5], "status": "neutral" },
+        { "id": 9, "name": "Мілітари", "coords": [2061.75, 3661], "status": "neutral" },
+        { "id": 10, "name": "Стройка", "coords": [1111.5, 5316.75], "status": "neutral" },
+        { "id": 11, "name": "Складский комплекс", "coords": [1888, 9002.5], "status": "neutral" }
     ],
     sergeevka: [
-        {
-            "id": 1,
-            "name": "Окопи",
-            "coords": [7259, 4150.75],
-            "status": "neutral"
-        },
-        {
-            "id": 2,
-            "name": "Західний граничний аванпост",
-            "coords": [7875.5, 1369.75],
-            "status": "neutral"
-        },
-        {
-            "id": 3,
-            "name": "Східний граничний аванпост",
-            "coords": [6582.75, 8715.5],
-            "status": "neutral"
-        },
-        {
-            "id": 4,
-            "name": "Завод",
-            "coords": [5421.75, 8143],
-            "status": "neutral"
-        },
-        {
-            "id": 5,
-            "name": "Колгосп",
-            "coords": [7712.25, 7660.25],
-            "status": "neutral"
-        },
-        {
-            "id": 6,
-            "name": "Заправка",
-            "coords": [8253.75, 5065.25],
-            "status": "neutral"
-        },
-        {
-            "id": 7,
-            "name": "Опорний пункт",
-            "coords": [8753, 2979.5],
-            "status": "neutral"
-        },
-        {
-            "id": 8,
-            "name": "Ферма",
-            "coords": [5252.75, 2995.25],
-            "status": "neutral"
-        },
-        {
-            "id": 9,
-            "name": "Залізнична станція",
-            "coords": [6647, 2241.5],
-            "status": "neutral"
-        },
-        {
-            "id": 10,
-            "name": "Школа",
-            "coords": [5121, 4668.25],
-            "status": "neutral"
-        },
-        {
-            "id": 11,
-            "name": "Буд. Майданчик",
-            "coords": [4771.25, 6264.5],
-            "status": "neutral"
-        },
-        {
-            "id": 12,
-            "name": "Склади",
-            "coords": [6969, 6132.5],
-            "status": "neutral"
-        }
+        { "id": 1, "name": "Окопи", "coords": [7259, 4150.75], "status": "neutral" },
+        { "id": 2, "name": "Західний граничний аванпост", "coords": [7875.5, 1369.75], "status": "neutral" },
+        { "id": 3, "name": "Східний граничний аванпост", "coords": [6582.75, 8715.5], "status": "neutral" },
+        { "id": 4, "name": "Завод", "coords": [5421.75, 8143], "status": "neutral" },
+        { "id": 5, "name": "Колгосп", "coords": [7712.25, 7660.25], "status": "neutral" },
+        { "id": 6, "name": "Заправка", "coords": [8253.75, 5065.25], "status": "neutral" },
+        { "id": 7, "name": "Опорний пункт", "coords": [8753, 2979.5], "status": "neutral" },
+        { "id": 8, "name": "Ферма", "coords": [5252.75, 2995.25], "status": "neutral" },
+        { "id": 9, "name": "Залізнична станція", "coords": [6647, 2241.5], "status": "neutral" },
+        { "id": 10, "name": "Школа", "coords": [5121, 4668.25], "status": "neutral" },
+        { "id": 11, "name": "Буд. Майданчик", "coords": [4771.25, 6264.5], "status": "neutral" },
+        { "id": 12, "name": "Склади", "coords": [6969, 6132.5], "status": "neutral" }
     ],
     satellite: [] // Для Аэропорта точек нет
 };
@@ -186,6 +80,12 @@ function updateTexts() {
     document.getElementById('theme-label').innerHTML = t.themeLabel;
     document.getElementById('onmap-history').textContent = t.onMapHistory + t.layerOptions[currentLayer._url.split(".")[1].replace("/assets/images/", "")]
     document.getElementById('toggleMenuLabel').textContent = t.toggleMenuLabel.toUpperCase();
+
+    // Обновляем title у новых кнопок
+    document.getElementById('toggle-points-mode-btn').title = t.togglePointsModeTitle;
+    document.getElementById('toggle-kshm-mode-btn').title = t.toggleKshmModeTitle;
+    // Обновляем popup у КШМ, если он есть
+    if (kshmMarker) kshmMarker.bindPopup(translations[currentLang].kshmPopup);
 }
 
 function updateLayerOptions() {
@@ -243,8 +143,15 @@ try {
     });
     console.log('Map initialized successfully');
     
-    // Инициализируем слой ЗДЕСЬ, ПОСЛЕ создания карты
+    // Инициализируем слои
     pointLayer = L.layerGroup().addTo(map);
+    signalLinesLayer = L.layerGroup().addTo(map);
+
+    // Создаем иконку КШМ
+    kshmIcon = L.divIcon({
+        className: 'kshm-icon',
+        iconSize: [15, 15]
+    });
 
 } catch (error) {
     console.error('Error initializing map:', error);
@@ -338,7 +245,15 @@ map.on('zoomend', drawGrid);
 
 
 function changeLayer() {
-    if (pointLayer) pointLayer.clearLayers(); // Очищаем маркеры
+    // Сбрасываем все
+    if (pointLayer) pointLayer.clearLayers();
+    if (signalLinesLayer) signalLinesLayer.clearLayers();
+    if (kshmMarker) {
+        map.removeLayer(kshmMarker);
+        kshmMarker = null;
+    }
+    deactivateModes();
+    currentMapPoints = []; // Очищаем массив состояния
 
     const layer = document.getElementById('layer').value;
     map.removeLayer(currentLayer);
@@ -352,7 +267,6 @@ function changeLayer() {
         map.setMaxBounds(udachneBounds);
         showNotification(translations[currentLang].layerOptions.udachne + ' загружена');
         
-        // --- ОТРИСОВЫВАЕМ ТОЧКИ ДЛЯ УДАЧНОГО ---
         drawStrategicPoints(mapPointsData.udachne); 
         
     } else if (layer === 'sergeevka') {
@@ -364,7 +278,6 @@ function changeLayer() {
         map.setMaxBounds(sergeevkaBounds);
         showNotification(translations[currentLang].layerOptions.sergeevka + ' загружена');
 
-        // --- ОТРИСОВЫВАЕМ ТОЧКИ ДЛЯ СЕРГЕЕВКИ ---
         drawStrategicPoints(mapPointsData.sergeevka);
         
     } else if (layer === 'satellite') {
@@ -375,7 +288,8 @@ function changeLayer() {
         map.options.crs = L.CRS.Simple;
         map.setMaxBounds(donairBounds);
         showNotification(translations[currentLang].layerOptions.satellite + ' загружена');
-        // (Тут точки не рисуем)
+        
+        drawStrategicPoints(mapPointsData.satellite);
     }
 
     try {
@@ -416,6 +330,17 @@ function loadPointsFrom(i) {}
 function clearMap() {
     document.getElementById('result').innerText = '';
     document.getElementById('result-panel').classList.remove('active');
+    
+    // Сбрасываем состояние точек
+    const currentLayerName = document.getElementById('layer').value;
+    drawStrategicPoints(mapPointsData[currentLayerName]);
+    
+    // Убираем КШМ и линии
+    if (signalLinesLayer) signalLinesLayer.clearLayers();
+    if (kshmMarker) {
+        map.removeLayer(kshmMarker);
+        kshmMarker = null;
+    }
 }
 
 // Функции главного меню
@@ -463,9 +388,8 @@ document.getElementById('main-modal').addEventListener('click', (e) => {
 });
 
 let deviceMode = 'pc';
-let activeMode = null;
+let activeMode = null; // для мобильного
 
-// --- ОБНОВЛЕННАЯ ФУНКЦИЯ (убран режим админа) ---
 function setDevice(mode) {
     deviceMode = mode;
     toggleMainMenu();
@@ -476,25 +400,34 @@ function setDevice(mode) {
         map.off('click');
         
         map.on('click', (e) => {
-            // Обычный клик (мобильный)
-            console.log('Mobile map click at', e.latlng);
+            // Клик по карте (мобильный)
+            if (currentMode === 'kshm') {
+                placeKshm(e.latlng);
+            } else {
+                console.log('Mobile map click at', e.latlng);
+            }
         });
 
         showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].mobileBtn);
     
     } else { // 'pc' mode
         document.getElementById('mobile-buttons').classList.remove('active');
-        map.off('click');
+        map.off('click'); // Отключаем старый
+        map.off('contextmenu'); // Отключаем старый
         
         map.on('contextmenu', (e) => {
-            console.log('PC right-click detected at', e.latlng);
-            // Сюда будем добавлять логику для КШМ
+            // Правый клик (ПК) - ставим КШМ
+            if (currentMode === 'kshm') {
+                e.originalEvent.preventDefault(); // Отменяем стандартное меню
+                placeKshm(e.latlng);
+            } else {
+                console.log('PC right-click detected at', e.latlng);
+            }
         });
         
         map.on('click', (e) => {
-            // Обычный клик (ПК)
+            // Левый клик (ПК) - ничего не делаем, т.к. клик на маркеры
             console.log('PC left-click detected at', e.latlng);
-            // Сюда будем добавлять логику для выбора точек
         });
 
         showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].pcBtn);
@@ -555,44 +488,211 @@ updateThemeOptions();
 updateLanguageOptions();
 drawGrid();
 
-// --- ВЫЗОВ НОВОЙ ФУНКЦИИ ---
 // Отрисовываем точки для "Удачного" (т.к. она по умолчанию)
 drawStrategicPoints(mapPointsData.udachne);
 
 
-// --- НОВЫЕ И ИЗМЕНЕННЫЕ ФУНКЦИИ ---
+// --- НОВЫЕ ФУНКЦИИ ЛОГИКИ ---
 
-// Эта функция создает 1 маркер (желтый круг + надпись)
-function createPointMarker(name, latlng) {
-    // 1. Желтый круг
+// Вспомогательная функция расчета дистанции
+function calculateDistance(point1, point2) {
+    const lat1 = Array.isArray(point1) ? point1[0] : point1.lat;
+    const lng1 = Array.isArray(point1) ? point1[1] : point1.lng;
+    const lat2 = Array.isArray(point2) ? point2[0] : point2.lat;
+    const lng2 = Array.isArray(point2) ? point2[1] : point2.lng;
+
+    const dx = lng1 - lng2;
+    const dy = lat1 - lat2;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// --- РЕЖИМЫ ---
+function togglePointsMode() {
+    currentMode = (currentMode === 'points') ? 'none' : 'points';
+    const btn = document.getElementById('toggle-points-mode-btn');
+    if (currentMode === 'points') {
+        btn.classList.add('active');
+        document.getElementById('toggle-kshm-mode-btn').classList.remove('active');
+        showNotification(translations[currentLang].notificationPointsMode);
+        map.getContainer().style.cursor = 'pointer';
+    } else {
+        deactivateModes();
+    }
+}
+
+function toggleKshmMode() {
+    currentMode = (currentMode === 'kshm') ? 'none' : 'kshm';
+    const btn = document.getElementById('toggle-kshm-mode-btn');
+    if (currentMode === 'kshm') {
+        btn.classList.add('active');
+        document.getElementById('toggle-points-mode-btn').classList.remove('active');
+        showNotification(translations[currentLang].notificationKshmMode);
+        map.getContainer().style.cursor = 'crosshair';
+    } else {
+        deactivateModes();
+    }
+}
+
+function deactivateModes() {
+    currentMode = 'none';
+    document.getElementById('toggle-points-mode-btn').classList.remove('active');
+    document.getElementById('toggle-kshm-mode-btn').classList.remove('active');
+    map.getContainer().style.cursor = '';
+}
+
+// --- ОТРИСОВКА ---
+
+// Эта функция создает 1 маркер (с нужным цветом)
+function createPointMarker(point) {
+    const latlng = { lat: point.coords[0], lng: point.coords[1] };
+    
+    let color;
+    if (point.status === 'captured') {
+        color = '#00BFFF'; // Синий (Захвачено)
+    } else if (point.status === 'available') {
+        color = '#FF0000'; // Красный (Доступно)
+    } else {
+        color = '#FFFF00'; // Желтый (Нейтрально)
+    }
+
     const marker = L.circleMarker(latlng, {
         radius: 8,
-        color: '#FFFF00', // Желтый
+        color: color,
         weight: 3,
-        fillColor: '#FFFF00',
+        fillColor: color,
         fillOpacity: 0.5
-    }).addTo(pointLayer); // Добавляем на наш слой
+    }).addTo(pointLayer);
 
-    // 2. Надпись
-    marker.bindTooltip(name, {
-        permanent: true,       // Показать навсегда
-        direction: 'top',      // Показать сверху
-        offset: [0, -10],      // Сдвиг от маркера
-        className: 'strategic-point-label' // Наш CSS-стиль
+    marker.bindTooltip(point.name, {
+        permanent: true,
+        direction: 'top',
+        offset: [0, -10],
+        className: 'strategic-point-label'
+    });
+
+    // --- ДОБАВЛЯЕМ КЛИК НА МАРКЕР ---
+    marker.on('click', () => {
+        handlePointClick(point.id);
     });
 }
 
-// --- НОВАЯ ФУНКЦИЯ ---
-// Отрисовывает ВСЕ точки из переданного массива
-function drawStrategicPoints(pointsArray) {
-    if (!pointLayer) return; // Защита, если слой еще не создан
-    
-    pointLayer.clearLayers(); // Очищаем старые
-    
-    // Проходим по массиву и рисуем каждую точку
-    pointsArray.forEach(point => {
-        // Убедимся, что coords это latlng
-        const latlng = { lat: point.coords[0], lng: point.coords[1] };
-        createPointMarker(point.name, latlng);
+// Отрисовывает ВСЕ точки из массива
+function redrawPoints() {
+    if (!pointLayer) return;
+    pointLayer.clearLayers();
+    currentMapPoints.forEach(point => {
+        createPointMarker(point);
     });
+}
+
+// Инициализирует и отрисовывает точки при смене карты
+function drawStrategicPoints(pointsArray) {
+    if (!pointLayer) return; 
+    
+    // Глубокое копирование, чтобы сбросить состояние
+    currentMapPoints = JSON.parse(JSON.stringify(pointsArray));
+    
+    redrawPoints(); // Отрисовываем
+}
+
+// --- ЛОГИКА ---
+
+// Клик по маркеру
+function handlePointClick(clickedPointId) {
+    if (currentMode !== 'points') return; // Работаем только в режиме точек
+
+    const point = currentMapPoints.find(p => p.id === clickedPointId);
+    if (!point) return;
+
+    // Захватываем (синий) или отменяем захват (желтый)
+    if (point.status === 'neutral' || point.status === 'available') {
+        point.status = 'captured';
+    } else if (point.status === 'captured') {
+        point.status = 'neutral';
+    }
+
+    updateSignalRange(); // Пересчитываем все сигналы
+}
+
+// Установка КШМ
+function placeKshm(latlng) {
+    if (kshmMarker) {
+        map.removeLayer(kshmMarker); // Удаляем старый
+    }
+    kshmMarker = L.marker(latlng, { icon: kshmIcon, draggable: true })
+        .addTo(map)
+        .bindPopup(translations[currentLang].kshmPopup)
+        .openPopup();
+
+    kshmMarker.on('dragend', updateSignalRange); // Обновлять при перетаскивании
+    
+    updateSignalRange(); // Пересчитываем сигналы
+}
+
+// --- ГЛАВНАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ---
+function updateSignalRange() {
+    signalLinesLayer.clearLayers(); // Очищаем все старые линии
+
+    // Сбрасываем все "доступные" точки в "нейтральные"
+    currentMapPoints.forEach(p => {
+        if (p.status === 'available') {
+            p.status = 'neutral';
+        }
+    });
+
+    const capturedPoints = currentMapPoints.filter(p => p.status === 'captured');
+    const neutralPoints = currentMapPoints.filter(p => p.status === 'neutral');
+
+    // 1. Логика Точка-Точка (1км)
+    capturedPoints.forEach(cPoint => {
+        let nearestPoint = null;
+        let minDistance = Infinity;
+
+        neutralPoints.forEach(nPoint => {
+            const dist = calculateDistance(cPoint.coords, nPoint.coords);
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearestPoint = nPoint;
+            }
+        });
+
+        if (nearestPoint && minDistance <= POINT_RANGE) {
+            nearestPoint.status = 'available'; // Делаем красной
+            L.polyline([cPoint.coords, nearestPoint.coords], { className: 'signal-line-red' }).addTo(signalLinesLayer);
+        }
+    });
+
+    // 2. Логика КШМ (2км)
+    if (!kshmMarker) {
+        redrawPoints(); // КШМ нет, просто перерисовываем точки
+        return;
+    }
+
+    const kshmPos = kshmMarker.getLatLng();
+    let isKshmPowered = false;
+
+    // 2a. Проверяем, "запитана" ли КШМ (1км от синей точки)
+    capturedPoints.forEach(cPoint => {
+        const distToKshm = calculateDistance(cPoint.coords, kshmPos);
+        if (distToKshm <= POINT_RANGE) {
+            isKshmPowered = true;
+            L.polyline([cPoint.coords, kshmPos], { className: 'signal-line-blue' }).addTo(signalLinesLayer);
+        }
+    });
+
+    // 2b. Если запитана, раздаем сигнал (2км)
+    if (isKshmPowered) {
+        currentMapPoints.forEach(p => {
+            // Ищем точки, которые *все еще* нейтральные
+            if (p.status === 'neutral') {
+                const distFromKshm = calculateDistance(kshmPos, p.coords);
+                if (distFromKshm <= KSHM_RANGE) {
+                    p.status = 'available'; // Делаем красной
+                    L.polyline([kshmPos, p.coords], { className: 'signal-line-red' }).addTo(signalLinesLayer);
+                }
+            }
+        });
+    }
+
+    redrawPoints(); // Перерисовываем все точки с новыми цветами
 }
