@@ -673,9 +673,9 @@ function handlePointClick(clickedPointId) {
 
 // Клик по маркеру в режиме Поиска
 function handleSearchClick(point) {
-    // В режиме поиска можно кликать только на НЕ-свои точки
-    if (point.status === 'captured') return;
-
+    // --- ИСПРАВЛЕНИЕ: Убрана проверка (if (point.status === 'captured') return;),
+    // --- чтобы можно было кликать на СВОИ (синие) точки, которые атакуют
+    
     const index = searchTargetPoints.findIndex(p => p.id === point.id);
     if (index > -1) {
         searchTargetPoints.splice(index, 1); // Убираем, если уже есть (toggle)
