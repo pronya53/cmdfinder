@@ -708,3 +708,14 @@ a {
 label {
     text-shadow: black 0px 0px 1px;
 }
+
+/* ВОТ ДОБАВЛЕННЫЙ СТИЛЬ */
+.strategic-point-label {
+    background: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
+    color: white;
+    border: none;
+    box-shadow: none;
+    font-weight: bold;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px black; /* Тень для читаемости */
+}
