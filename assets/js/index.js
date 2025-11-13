@@ -2,10 +2,10 @@ console.log('Starting map initialization...');
 
 let currentLang = 'uk';
 
-// --- ДОБАВЛЕННЫЕ ПЕРЕМЕННЫЕ ---
+// --- ИЗМЕНЕНИЕ 1: ---
 let isAddPointMode = false; // Флаг, включен ли режим добавления точек
 let tempPoints = []; // Массив для временного хранения точек
-let pointLayer = L.layerGroup().addTo(map); // Слой, где будут маркеры
+let pointLayer; // <-- ОШИБКА БЫЛА ЗДЕСЬ. Теперь мы просто объявляем.
 // --- КОНЕЦ ---
 
 function changeLanguage() {
@@ -13,7 +13,6 @@ function changeLanguage() {
     document.title = translations[currentLang].title;
     updateTexts();
     updateLayerOptions();
-    // updateMortarOptions(); // Удалено
     updateLanguageOptions();
     showMenuSection(document.querySelector('.menu-nav-item.active').getAttribute('data-section'));
 }
@@ -99,6 +98,11 @@ try {
         maxBoundsViscosity: 1.0
     });
     console.log('Map initialized successfully');
+
+    // --- ИЗМЕНЕНИЕ 2: Инициализируем слой ЗДЕСЬ, ПОСЛЕ создания карты ---
+    pointLayer = L.layerGroup().addTo(map);
+    // --- КОНЕЦ ---
+
 } catch (error) {
     console.error('Error initializing map:', error);
 }
@@ -191,8 +195,8 @@ map.on('zoomend', drawGrid);
 
 
 function changeLayer() {
-    // --- ДОБАВЛЕННЫЕ СТРОКИ ---
-    pointLayer.clearLayers(); // Очищаем маркеры
+    // --- ИЗМЕНЕНИЕ 3: Добавил проверку на существование pointLayer ---
+    if (pointLayer) pointLayer.clearLayers(); // Очищаем маркеры
     tempPoints = []; // Очищаем массив
     if (isAddPointMode) toggleAddPointMode(); // Выключаем режим
     // --- КОНЕЦ ---
