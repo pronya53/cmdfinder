@@ -671,10 +671,10 @@ function handlePointClick(clickedPointId) {
     updateSignalRange();
 }
 
-// Клик по маркеру в режиме Поиска
+// --- ИСПРАВЛЕННЫЙ КЛИК В РЕЖИМЕ ПОИСКА ---
 function handleSearchClick(point) {
-    // --- ИСПРАВЛЕНИЕ: Убрана проверка (if (point.status === 'captured') return;),
-    // --- чтобы можно было кликать на СВОИ (синие) точки, которые атакуют
+    // УБРАНА ПРОВЕРКА if (point.status === 'captured') return;
+    // Теперь можно кликать на ЛЮБУЮ точку
     
     const index = searchTargetPoints.findIndex(p => p.id === point.id);
     if (index > -1) {
@@ -833,7 +833,7 @@ function redrawSearchCircles() {
     searchCirclesLayer.clearLayers();
     const t = translations[currentLang];
     
-    activeSearchTargets.forEach(p => {
+    searchTargetPoints.forEach(p => {
         L.circle(p.coords, {
             radius: KSHM_RANGE, // 2км
             className: 'search-circle-red'
