@@ -29,7 +29,7 @@ const translations = {
                         <li id="info-item4"><b>Режим КШМ (<i class="fa fa-truck"></i>):</b> Нажмите ПКМ (на ПК) или тапните (на моб.) по карте, чтобы поставить КШМ (синий квадрат).</li>
                         <li id="info-item5"><b>Питание КШМ (2км):</b> КШМ "запитывается", если находится в радиусе <b>2км</b> от любой <b>синей</b> (захваченной) точки.</li>
                         <li id="info-item6"><b>Сигнал от КШМ (2км):</b> Запитанная КШМ активирует (делает красными) все нейтральные точки в радиусе <b>2км</b>.</li>
-                        <li id="info-item7" style="color: #FF0000;"><b>Поиск КШМ (<i class="fa fa-search-location"></i>):</b> (Только для админов) Включите режим. Кликайте на <b>атакуемые</b> точки (неважно, какого они цвета). Сайт автоматически найдет и выделит красным все возможные зоны, откуда КШМ (запитанная от любой *вражеской* точки) может атаковать все выбранные цели.</li>
+                        <li id="info-item7" style="color: #FF0000;"><b>Поиск КШМ (<i class="fa fa-search-location"></i>):</b> (Только для админов) Включите режим. Кликайте на <b>атакуемые</b> точки. Сайт автоматически найдет и выделит красным все возможные зоны, откуда КШМ (запитанная от любой *вражеской* точки) может атаковать все выбранные цели.</li>
                    </ul>
                    <p id="info-author"><strong>Автор:</strong> PRONEDROG</p>
                    <p id="info-mapdata"><strong>Данные карт предоставлены:</strong> Conflict In Europe</p>`,
@@ -103,7 +103,7 @@ const translations = {
                         <li id="info-item4"><b>Режим КШМ (<i class="fa fa-truck"></i>):</b> Натисніть ПКМ (на ПК) або тапніть (на моб.) по карті, щоб поставити КШМ (синій квадрат).</li>
                         <li id="info-item5"><b>Живлення КШМ (2км):</b> КШМ "отримує живлення", якщо знаходиться в радіусі <b>2км</b> від будь-якої <b>синьої</b> (захопленої) точки.</li>
                         <li id="info-item6"><b>Сигнал від КШМ (2км):</b> КШМ, що має живлення, активує (робить червоними) усі нейтральні точки в радіусі <b>2км</b>.</li>
-                        <li id="info-item7" style="color: #FF0000;"><b>Пошук КШМ (<i class="fa fa-search-location"></i>):</b> (Тільки для адмінів) Увімкніть режим. Клікайте на <b>атаковані</b> точки (неважливо, якого вони кольору). Сайт автоматично знайде і виділить червоним всі можливі зони, звідки КШМ (що живиться від будь-якої *ворожої* точки) може атакувати всі обрані цілі.</li>
+                        <li id="info-item7" style="color: #FF0000;"><b>Пошук КШМ (<i class="fa fa-search-location"></i>):</b> (Тільки для адмінів) Увімкніть режим. Клікайте на <b>атаковані</b> точки. Сайт автоматично знайде і виділить червоним всі можливі зони, звідки КШМ (що живиться від будь-якої *ворожої* точки) може атакувати всі обрані цілі.</li>
                    </ul>
                    <p id="info-author"><strong>Автор:</strong> PRONEDROG</p>
                    <p id="info-mapdata"><strong>Дані карт надано:</strong> Conflict In Europe</p>`,
@@ -174,7 +174,7 @@ const translations = {
                         <li id="info-item4"><b>KSHM Mode (<i class="fa fa-truck"></i>):</b> Right-click (on PC) or tap (on mob.) the map to place a KSHM (blue square).</li>
                         <li id="info-item5"><b>KSHM Power (2km):</b> The KSHM is "powered" if it is within <b>2km</b> of any <b>blue</b> (captured) point.</li>
                         <li id="info-item6"><b>Signal from KSHM (2km):</b> A powered KSHM activates (turns red) all neutral points within a <b>2km</b> radius.</li>
-                        <li id="info-item7" style="color: #FF0000;"><b>KSHM Search (<i class="fa fa-search-location"></i>):</b> (Admin only) Enable mode. Click all <b>attacked</b> points (regardless of their color). The site will auto-find and highlight in red all possible KSHM locations (powered by *any* enemy point) that can attack all selected targets.</li>
+                        <li id="info-item7" style="color: #FF0000;"><b>KSHM Search (<i class="fa fa-search-location"></i>):</b> (Admin only) Enable mode. Click all <b>attacked</b> points. The site will auto-find and highlight in red all possible KSHM locations (powered by *any* enemy point) that can attack all selected targets.</li>
                    </ul>
                    <p id="info-author"><strong>Author:</strong> PRONEDROG</p>
                    <p id="info-mapdata"><strong>Map Data Provided by:</strong> Conflict In Europe</p>`,
