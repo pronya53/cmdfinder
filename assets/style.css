@@ -596,28 +596,7 @@ body {
     cursor: pointer;
 }
 
-#history-panel {
-    position: fixed;
-    bottom: 150px;
-    left: -370px;
-    width: 350px;
-    background: var(--content-grad);
-    border: 2px solid var(--bga);
-    padding: 20px 10px;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    font-size: 14px;
-    height: 70%;
-    transition: all .3s ease;
-    backdrop-filter: blur(10px);
-    text-align: center;
-
-}
-
-#history-panel.active {
-    left: 20px;
-}
+/* Стили Истории УДАЛЕНЫ */
 
 body div.controls {
     position: fixed;
@@ -633,7 +612,7 @@ body div.controls {
     padding: 10px;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around; /* Изменено для центровки 3-х кнопок */
 }
 
 body div.controls button {
@@ -684,23 +663,6 @@ body div.controls button i {
     font-size: 16pt;
 }
 
-.history-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    padding: 6px 0;
-    border-bottom: 1px solid #ccc;
-}
-
-.history-item button {
-    width: 30px;
-    aspect-ratio: 1;
-    padding: 0;
-    align-items: center;
-    justify-content: center;
-}
-
 a {
     color: var(--deftextfg)
 }
@@ -720,7 +682,7 @@ label {
     text-shadow: 1px 1px 2px black; /* Тень для читаемости */
 }
 
-/* --- НОВЫЕ СТИЛИ --- */
+/* --- СТИЛИ ДЛЯ КШМ И ЛИНИЙ --- */
 .kshm-icon {
     background: #00BFFF; /* Синий */
     border: 2px solid #FFFFFF;
