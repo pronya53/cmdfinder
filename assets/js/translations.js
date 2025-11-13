@@ -19,7 +19,19 @@ const translations = {
         pcBtn: 'Мышь и клавиатура',
         mobileBtn: 'Сенсорное',
         infoTitle: 'Информация',
-        infoText: `<h3 id="info-how-to">Как использовать:</h3><ul><li id="info-item1">Выберите карту в настройках.</li><li id="info-item2">Используйте мышь или сенсорный экран для взаимодействия с картой.</li><li id="info-item6">Смените карту в выборе слоя.</li></ul><p id="info-author"><strong>Автор:</strong> PRONEDROG</p><p id="info-mapdata"><strong>Данные карт предоставлены:</strong> Conflict In Europe</p><p id="info-support"><strong>За підтримкой:</strong> ІГІЛ dxtitnx</p>`,
+        // --- ОБНОВЛЕННЫЙ ТЕКСТ ---
+        infoText: `<h3 id="info-how-to">Как это работает:</h3>
+                   <p>Этот инструмент симулирует логику захвата точек и связи для Arma Reforger.</p>
+                   <ul>
+                        <li id="info-item1"><b>Точки (Желтые):</b> Нейтральные.</li>
+                        <li id="info-item2"><b>Режим Точек (<i class="fa fa-network-wired"></i>):</b> Нажмите на нейтральную (желтую) или доступную (красную) точку, чтобы "захватить" ее (станет синей). Нажмите на синюю, чтобы сделать ее нейтральной.</li>
+                        <li id="info-item3"><b>Сигнал от Точки:</b> Синяя точка автоматически активирует (делает красными) все нейтральные точки в радиусе <b>1км</b>.</li>
+                        <li id="info-item4"><b>Режим КШМ (<i class="fa fa-truck"></i>):</b> Нажмите ПКМ (на ПК) или тапните (на моб.) по карте, чтобы поставить КШМ (синий квадрат).</li>
+                        <li id="info-item5"><b>Питание КШМ:</b> КШМ "запитывается", если находится в радиусе <b>2км</b> от любой синей точки.</li>
+                        <li id="info-item6"><b>Сигнал от КШМ:</b> Запитанная КШМ активирует (делает красными) все нейтральные точки в радиусе <b>2км</b>.</li>
+                   </ul>
+                   <p id="info-author"><strong>Автор:</strong> PRONEDROG</p>
+                   <p id="info-mapdata"><strong>Данные карт предоставлены:</strong> Conflict In Europe</p>`,
         closeBtn: 'Закрыть',
         clearMapTitle: 'Очистить карту',
         settingsTitle: 'Открыть настройки',
@@ -47,8 +59,9 @@ const translations = {
         notificationPointsMode: 'Режим захвата точек АКТИВИРОВАН',
         notificationKshmMode: 'Режим установки КШМ АКТИВИРОВАН',
         kshmPowerSource: 'Питание КШМ (2км):',
-        kshmActivePoints: 'Точек от КШМ (2км):',
-        kshmNoPower: 'КШМ не запитана'
+        kshmActivePoints: 'Сигнал на:',
+        kshmNoPower: 'КШМ не запитана',
+        kshmNoPoints: 'Нет новых точек в радиусе'
     },
     uk: {
         title: 'Тактична карта',
@@ -70,14 +83,26 @@ const translations = {
         pcBtn: 'Миша та клавіатура',
         mobileBtn: 'Сенсорне',
         infoTitle: 'Інформація',
-        infoText: `<h3 id="info-how-to">Як використовувати:</h3><ul><li id="info-item1">Виберіть карту в налаштуваннях.</li><li id="info-item2">Використовуйте мишу або сенсорний екран для взаємодії з картою.</li><li id="info-item6">Змініть карту у виборі шару.</li></ul><p id="info-author"><strong>Автор:</strong> PRONEDROG</p><p id="info-mapdata"><strong>Дані карт надано:</strong> Conflict In Europe</p><p id="info-support"><strong>За підтримкою:</strong> ІГІЛ dxtitnx</p>`,
+        // --- ОБНОВЛЕННЫЙ ТЕКСТ ---
+        infoText: `<h3 id="info-how-to">Як це працює:</h3>
+                   <p>Цей інструмент симулює логіку захоплення точок та зв'язку для Arma Reforger.</p>
+                   <ul>
+                        <li id="info-item1"><b>Точки (Жовті):</b> Нейтральні.</li>
+                        <li id="info-item2"><b>Режим Точок (<i class="fa fa-network-wired"></i>):</b> Натисніть на нейтральну (жовту) або доступну (червону) точку, щоб "захопити" її (стане синьою). Натисніть на синю, щоб зробити її нейтральною.</li>
+                        <li id="info-item3"><b>Сигнал від Точки:</b> Синя точка автоматично активує (робить червоними) усі нейтральні точки в радіусі <b>1км</b>.</li>
+                        <li id="info-item4"><b>Режим КШМ (<i class="fa fa-truck"></i>):</b> Натисніть ПКМ (на ПК) або тапніть (на моб.) по карті, щоб поставити КШМ (синій квадрат).</li>
+                        <li id="info-item5"><b>Живлення КШМ:</b> КШМ "отримує живлення", якщо знаходиться в радіусі <b>2км</b> від будь-якої синьої точки.</li>
+                        <li id="info-item6"><b>Сигнал від КШМ:</b> КШМ, що має живлення, активує (робить червоними) усі нейтральні точки в радіусі <b>2км</b>.</li>
+                   </ul>
+                   <p id="info-author"><strong>Автор:</strong> PRONEDROG</p>
+                   <p id="info-mapdata"><strong>Дані карт надано:</strong> Conflict In Europe</p>`,
         closeBtn: 'Закрити',
         clearMapTitle: 'Очистити карту',
         settingsTitle: 'Відкрити налаштування',
         navLanguage: 'Мова',
         navDevice: 'Введення',
         navMap: 'Вибір карти',
-        navInfo: 'Інформаформація',
+        navInfo: 'Інформація',
         credits: 'Powered by PRONEDROG | За підтримки Conflict InEurope',
         navSetup: 'Передустановка',
         setupTitle: 'Меню передустановок',
@@ -98,8 +123,9 @@ const translations = {
         notificationPointsMode: 'Режим захоплення точок АКТИВОВАНИЙ',
         notificationKshmMode: 'Режим встановлення КШМ АКТИВОВАНИЙ',
         kshmPowerSource: 'Живлення КШМ (2км):',
-        kshmActivePoints: 'Точок від КШМ (2км):',
-        kshmNoPower: 'КШМ не підключена'
+        kshmActivePoints: 'Сигнал на:',
+        kshmNoPower: 'КШМ не підключена',
+        kshmNoPoints: 'Немає нових точок в радіусі'
     },
     en: {
         title: 'Tactical Map',
@@ -121,7 +147,19 @@ const translations = {
         pcBtn: 'Mouse and keyboard',
         mobileBtn: 'Touch',
         infoTitle: 'Information',
-        infoText: `<h3 id="info-how-to">How to Use:</h3><ul><li id="info-item1">Select map in settings.</li><li id="info-item2">Use mouse or touch to interact with the map.</li><li id="info-item6">Change map in layer selection.</li></ul><p id="info-author"><strong>Author:</strong> PRONEDROG</p><p id="info-mapdata"><strong>Map Data Provided by:</strong> Conflict In Europe</p><p id="info-support"><strong>Supported by:</strong> ІГІЛ dxtitnx</p>`,
+        // --- ОБНОВЛЕННЫЙ ТЕКСТ ---
+        infoText: `<h3 id="info-how-to">How it works:</h3>
+                   <p>This tool simulates the logic of point capture and signal range for Arma Reforger.</p>
+                   <ul>
+                        <li id="info-item1"><b>Points (Yellow):</b> Neutral.</li>
+                        <li id="info-item2"><b>Points Mode (<i class="fa fa-network-wired"></i>):</b> Click a neutral (yellow) or available (red) point to "capture" it (turns blue). Click a blue point to make it neutral.</li>
+                        <li id="info-item3"><b>Signal from Point:</b> A blue point automatically activates (turns red) all neutral points within a <b>1km</b> radius.</li>
+                        <li id="info-item4"><b>KSHM Mode (<i class="fa fa-truck"></i>):</b> Right-click (on PC) or tap (on mob.) the map to place a KSHM (blue square).</li>
+                        <li id="info-item5"><b>KSHM Power:</b> The KSHM is "powered" if it is within <b>2km</b> of any blue point.</li>
+                        <li id="info-item6"><b>Signal from KSHM:</b> A powered KSHM activates (turns red) all neutral points within a <b>2km</b> radius.</li>
+                   </ul>
+                   <p id="info-author"><strong>Author:</strong> PRONEDROG</p>
+                   <p id="info-mapdata"><strong>Map Data Provided by:</strong> Conflict In Europe</p>`,
         closeBtn: 'Close',
         clearMapTitle: 'Clear Map',
         settingsTitle: 'Open Settings',
@@ -149,7 +187,8 @@ const translations = {
         notificationPointsMode: 'Point Capture Mode ACTIVATED',
         notificationKshmMode: 'Place KSHM Mode ACTIVATED',
         kshmPowerSource: 'KSHM Power (2km):',
-        kshmActivePoints: 'Points by KSHM (2km):',
-        kshmNoPower: 'KSHM not powered'
+        kshmActivePoints: 'Signal to:',
+        kshmNoPower: 'KSHM not powered',
+        kshmNoPoints: 'No new points in range'
     }
 };
