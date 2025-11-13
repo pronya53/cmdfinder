@@ -11,7 +11,7 @@ let currentMode = 'none'; // 'none', 'points', 'kshm'
 
 // --- ОБНОВЛЕННЫЕ КОНСТАНТЫ ---
 const KSHM_RANGE = 2000; // 2км (КШМ -> Точка)
-const POINT_RANGE = 2000; // 1км (Точка -> Точка)
+const POINT_RANGE = 1000; // 1км (Точка -> Точка)
 const POINT_TO_KSHM_RANGE = 2000; // 2км (Точка -> КШМ)
 
 // --- ОБЪЕКТ СО ВСЕМИ ДАННЫМИ ТОЧЕК ---
@@ -58,10 +58,8 @@ function changeLanguage() {
     updateStatusPanel(); // Обновить текст в панели
 }
 
-function toggleHistory() {
-    document.getElementById('history-panel').classList.toggle('active')
-    document.getElementById('toggleHistoryBtn').classList.toggle('active')
-}
+// Функция Истории УДАЛЕНА
+// function toggleHistory() { ... }
 
 function updateTexts() {
     const t = translations[currentLang];
@@ -78,10 +76,11 @@ function updateTexts() {
     document.getElementById('nav-info').textContent = t.navInfo;
     document.getElementById('device-title').textContent = t.navDevice;
     document.getElementById('info-title').textContent = t.navInfo;
-    document.getElementById('history-title').textContent = t.historyTitle;
+    // document.getElementById('history-title').textContent = t.historyTitle; // Удалено
     document.getElementById('info-content').innerHTML = t.infoText;
     document.getElementById('theme-label').innerHTML = t.themeLabel;
-    document.getElementById('onmap-history').textContent = t.onMapHistory + t.layerOptions[currentLayer._url.split(".")[1].replace("/assets/images/", "")]
+    // document.getElementById('onmap-history').textContent = ... // Удалено
+
     document.getElementById('toggleMenuLabel').textContent = t.toggleMenuLabel.toUpperCase();
 
     // Обновляем title у новых кнопок
@@ -304,30 +303,17 @@ function changeLayer() {
     }
     drawGrid();
 
-    loadHistoryItems(); 
+    // loadHistoryItems(); // Удалено
     updateTexts();
 }
 
-// Логика истории (пока пустая)
-let guidances = {
-    udachne: [],
-    sergeevka: [],
-    DonAirConflict: []
-}
-function saveToHistory() {
-    showNotification('Функция истории пока неактивна');
-}
-function deleteHistoryItem(i) {}
-function renameHistoryItem(i) {}
-function runRenameHistoryItem(event) {}
-function runRenameHistoryItemFocus(i) {}
-
-function loadHistoryItems() {
-    document.getElementById('history-list').innerHTML = "";
-}
-loadHistoryItems();
-
-function loadPointsFrom(i) {}
+// Логика истории УДАЛЕНА
+// let guidances = { ... }
+// function saveToHistory() { ... }
+// ...
+// function loadHistoryItems() { ... }
+// loadHistoryItems();
+// function loadPointsFrom(i) {}
 
 
 function clearMap() {
@@ -395,7 +381,7 @@ let activeMode = null; // для мобильного
 
 function setDevice(mode) {
     deviceMode = mode;
-    toggleMainMenu();
+    // toggleMainMenu(); // Убрал, чтобы не закрывалось при вызове по умолчанию
 
     if (mode === 'mobile') {
         document.getElementById('mobile-buttons').classList.add('active');
@@ -433,7 +419,8 @@ function setDevice(mode) {
             console.log('PC left-click detected at', e.latlng);
         });
 
-        showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].pcBtn);
+        // Не показываем уведомление при загрузке, только при клике
+        // showNotification(translations[currentLang].deviceBtnTitle + ': ' + translations[currentLang].pcBtn);
     }
 }
 // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
@@ -632,8 +619,8 @@ function placeKshm(latlng) {
     updateSignalRange(); // Пересчитываем сигналы
 }
 
-// --- НОВАЯ ФУНКЦИЯ ДЛЯ ИНФО-ПАНЕЛИ ---
-function updateStatusPanel(powerDist, activeCount) {
+// --- ОБНОВЛЕННАЯ ФУНКЦИЯ ДЛЯ ИНФО-ПАНЕЛИ ---
+function updateStatusPanel(powerDist, availablePointNames) {
     const t = translations[currentLang];
     const panel = document.getElementById('result-panel');
     const resultDiv = document.getElementById('result');
@@ -646,12 +633,17 @@ function updateStatusPanel(powerDist, activeCount) {
 
     let powerText = '';
     if (powerDist > 0) {
-        powerText = `${t.kshmPowerSource} ${powerDist.toFixed(0)}м`;
+        powerText = `<b>${t.kshmPowerSource}</b> ${powerDist.toFixed(0)}м`;
     } else {
-        powerText = t.kshmNoPower;
+        powerText = `<b>${t.kshmNoPower}</b>`;
     }
 
-    let countText = `${t.kshmActivePoints} ${activeCount}`;
+    let countText = `<b>${t.kshmActivePoints}</b> `;
+    if (availablePointNames.length > 0) {
+        countText += availablePointNames.join(', ');
+    } else {
+        countText += t.kshmNoPoints;
+    }
     
     resultDiv.innerHTML = `${powerText}<br>${countText}`;
     panel.classList.add('active');
@@ -671,28 +663,23 @@ function updateSignalRange() {
     const capturedPoints = currentMapPoints.filter(p => p.status === 'captured');
     const neutralPoints = currentMapPoints.filter(p => p.status === 'neutral');
 
-    // 1. Логика Точка-Точка (1км)
+    // 1. Логика Точка-Точка (1км) - ИСПРАВЛЕНО
     capturedPoints.forEach(cPoint => {
-        let nearestPoint = null;
-        let minDistance = Infinity;
-
         neutralPoints.forEach(nPoint => {
             const dist = calculateDistance(cPoint.coords, nPoint.coords);
-            if (dist < minDistance) {
-                minDistance = dist;
-                nearestPoint = nPoint;
+            if (dist <= POINT_RANGE) {
+                // Проверяем, что она еще не стала 'available' от КШМ
+                if (nPoint.status === 'neutral') { 
+                    nPoint.status = 'available';
+                }
+                L.polyline([cPoint.coords, nPoint.coords], { className: 'signal-line-red' }).addTo(signalLinesLayer);
             }
         });
-
-        if (nearestPoint && minDistance <= POINT_RANGE) {
-            nearestPoint.status = 'available'; // Делаем красной
-            L.polyline([cPoint.coords, nearestPoint.coords], { className: 'signal-line-red' }).addTo(signalLinesLayer);
-        }
     });
 
     // 2. Логика КШМ
     let kshmPowerDist = 0;
-    let kshmActiveCount = 0;
+    let kshmActivePoints = []; // Теперь массив имен
     
     if (kshmMarker) {
         const kshmPos = kshmMarker.getLatLng();
@@ -702,7 +689,7 @@ function updateSignalRange() {
         // 2a. Проверяем, "запитана" ли КШМ (2км от синей точки)
         capturedPoints.forEach(cPoint => {
             const distToKshm = calculateDistance(cPoint.coords, kshmPos);
-            if (distToKshm <= POINT_TO_KSHM_RANGE) {
+            if (distToKshm <= POINT_TO_KSHM_RANGE) { // Используем новую константу
                 isKshmPowered = true;
                 L.polyline([cPoint.coords, kshmPos], { className: 'signal-line-blue' }).addTo(signalLinesLayer);
                 
@@ -723,7 +710,7 @@ function updateSignalRange() {
                     if (distFromKshm <= KSHM_RANGE) {
                         p.status = 'available'; // Делаем красной
                         L.polyline([kshmPos, p.coords], { className: 'signal-line-red' }).addTo(signalLinesLayer);
-                        kshmActiveCount++; // Считаем
+                        kshmActivePoints.push(p.name); // Добавляем имя
                     }
                 }
             });
@@ -731,6 +718,8 @@ function updateSignalRange() {
     }
 
     redrawPoints(); // Перерисовываем все точки с новыми цветами
-    updateStatusPanel(kshmPowerDist, kshmActiveCount); // Обновляем инфо-панель
+    updateStatusPanel(kshmPowerDist, kshmActivePoints); // Обновляем инфо-панель
 }
 
+// --- ЗАПУСК РЕЖИМА ПК ПО УМОЛЧАНИЮ ---
+setDevice('pc');
