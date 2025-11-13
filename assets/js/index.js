@@ -5,12 +5,17 @@ let pointLayer; // Слой для маркеров точек
 let signalLinesLayer; // Слой для линий связи
 let kshmMarker = null; // Маркер КШМ
 let kshmIcon; // Иконка КШМ
+// --- НОВЫЕ СЛОИ ДЛЯ ПОИСКА ---
+let searchCirclesLayer;
+let searchResultLayer;
 
 let currentMapPoints = []; // Тут будет храниться состояние точек (захвачено/нет)
-let currentMode = 'none'; // 'none', 'points', 'kshm'
+let currentMode = 'none'; // 'none', 'points', 'kshm', 'search'
+let activeSearchPoints = []; // Массив точек, по которым ищем
+const SEARCH_SCAN_STEP = 50; // Шаг сканирования карты (в метрах)
 
 // --- ОБНОВЛЕННЫЕ КОНСТАНТЫ ---
-const KSHM_RANGE = 2000; // 2км (КШМ -> Точка)
+const KSHM_RANGE = 2000; // 2км (КШМ -> Точка И Поиск)
 const POINT_RANGE = 2000; // 1км (Точка -> Точка)
 const POINT_TO_KSHM_RANGE = 2000; // 2км (Точка -> КШМ)
 
@@ -92,6 +97,9 @@ function updateTexts() {
     document.getElementById('toggle-points-mode-btn').title = t.togglePointsModeTitle;
     document.getElementById('toggle-kshm-mode-btn').title = t.toggleKshmModeTitle;
     if (kshmMarker) kshmMarker.bindPopup(translations[currentLang].kshmPopup);
+    // Обновляем title для кнопки админа
+    const adminBtn = document.getElementById('toggle-search-mode-btn');
+    if (adminBtn) adminBtn.title = t.toggleSearchModeTitle;
 }
 
 function updateLayerOptions() {
@@ -152,6 +160,8 @@ try {
     // Инициализируем слои
     pointLayer = L.layerGroup().addTo(map);
     signalLinesLayer = L.layerGroup().addTo(map);
+    searchCirclesLayer = L.layerGroup().addTo(map);
+    searchResultLayer = L.layerGroup().addTo(map);
 
     // Создаем иконку КШМ
     kshmIcon = L.divIcon({
@@ -258,6 +268,11 @@ function changeLayer() {
         map.removeLayer(kshmMarker);
         kshmMarker = null;
     }
+    // Сброс поиска
+    if (searchCirclesLayer) searchCirclesLayer.clearLayers();
+    if (searchResultLayer) searchResultLayer.clearLayers();
+    activeSearchPoints = [];
+
     deactivateModes();
     currentMapPoints = []; // Очищаем массив состояния
     closeResult(); // Скрываем инфо-панель
@@ -322,6 +337,12 @@ function clearMap() {
         map.removeLayer(kshmMarker);
         kshmMarker = null;
     }
+
+    // Сброс поиска
+    if (searchCirclesLayer) searchCirclesLayer.clearLayers();
+    if (searchResultLayer) searchResultLayer.clearLayers();
+    activeSearchPoints = [];
+    deactivateModes();
     
     // Скрываем инфо-панель
     closeResult();
@@ -507,6 +528,7 @@ function togglePointsMode() {
     if (currentMode === 'points') {
         btn.classList.add('active');
         document.getElementById('toggle-kshm-mode-btn').classList.remove('active');
+        document.getElementById('toggle-search-mode-btn').classList.remove('active');
         showNotification(translations[currentLang].notificationPointsMode);
         map.getContainer().style.cursor = 'pointer';
     } else {
@@ -520,8 +542,24 @@ function toggleKshmMode() {
     if (currentMode === 'kshm') {
         btn.classList.add('active');
         document.getElementById('toggle-points-mode-btn').classList.remove('active');
+        document.getElementById('toggle-search-mode-btn').classList.remove('active');
         showNotification(translations[currentLang].notificationKshmMode);
         map.getContainer().style.cursor = 'crosshair';
+    } else {
+        deactivateModes();
+    }
+}
+
+// --- НОВАЯ ФУНКЦИЯ ПОИСКА ---
+function toggleSearchMode() {
+    currentMode = (currentMode === 'search') ? 'none' : 'search';
+    const btn = document.getElementById('toggle-search-mode-btn');
+    if (currentMode === 'search') {
+        btn.classList.add('active');
+        document.getElementById('toggle-points-mode-btn').classList.remove('active');
+        document.getElementById('toggle-kshm-mode-btn').classList.remove('active');
+        showNotification(translations[currentLang].notificationSearchMode);
+        map.getContainer().style.cursor = 'help';
     } else {
         deactivateModes();
     }
@@ -531,7 +569,17 @@ function deactivateModes() {
     currentMode = 'none';
     document.getElementById('toggle-points-mode-btn').classList.remove('active');
     document.getElementById('toggle-kshm-mode-btn').classList.remove('active');
+    
+    const adminBtn = document.getElementById('toggle-search-mode-btn');
+    if (adminBtn) adminBtn.classList.remove('active');
+    
     map.getContainer().style.cursor = '';
+    
+    // Сброс поиска
+    searchCirclesLayer.clearLayers();
+    searchResultLayer.clearLayers();
+    activeSearchPoints = [];
+    closeResult(); // Закрываем панель
 }
 
 // --- ОТРИСОВКА ---
@@ -564,9 +612,13 @@ function createPointMarker(point) {
         className: 'strategic-point-label'
     });
 
-    // --- ДОБАВЛЯЕМ КЛИК НА МАРКЕР ---
+    // --- ОБНОВЛЕННЫЙ КЛИК НА МАРКЕР ---
     marker.on('click', () => {
-        handlePointClick(point.id);
+        if (currentMode === 'points') {
+            handlePointClick(point.id);
+        } else if (currentMode === 'search') {
+            handleSearchClick(point);
+        }
     });
 }
 
@@ -581,7 +633,7 @@ function redrawPoints() {
 
 // Инициализирует и отрисовывает точки при смене карты
 function drawStrategicPoints(pointsArray) {
-    if (!pointLayer || !pointsArray) return; 
+    if (!pointLayer || !pointsArray || pointsArray.length === 0) return; 
     const mapName = document.getElementById('layer').value || 'udachne';
     
     // Глубокое копирование
@@ -598,36 +650,44 @@ function drawStrategicPoints(pointsArray) {
 
 // --- ЛОГИКА ---
 
-// Клик по маркеру
+// Клик по маркеру в режиме Точек
 function handlePointClick(clickedPointId) {
-    if (currentMode !== 'points') return; // Работаем только в режиме точек
-
     const point = currentMapPoints.find(p => p.id === clickedPointId);
     if (!point) return;
 
-    // Захватываем (синий) или отменяем захват (желтый)
     if (point.status === 'neutral' || point.status === 'available') {
         point.status = 'captured';
     } else if (point.status === 'captured') {
         point.status = 'neutral';
     }
+    updateSignalRange();
+}
 
-    updateSignalRange(); // Пересчитываем все сигналы
+// Клик по маркеру в режиме Поиска
+function handleSearchClick(point) {
+    const index = activeSearchPoints.findIndex(p => p.id === point.id);
+    if (index > -1) {
+        activeSearchPoints.splice(index, 1); // Убираем, если уже есть (toggle)
+    } else {
+        activeSearchPoints.push(point); // Добавляем
+    }
+    
+    redrawSearchCircles();
+    runSmartSearch();
 }
 
 // Установка КШМ
 function placeKshm(latlng) {
     if (kshmMarker) {
-        map.removeLayer(kshmMarker); // Удаляем старый
+        map.removeLayer(kshmMarker);
     }
     kshmMarker = L.marker(latlng, { icon: kshmIcon, draggable: true })
         .addTo(map)
         .bindPopup(translations[currentLang].kshmPopup)
         .openPopup();
 
-    kshmMarker.on('dragend', updateSignalRange); // Обновлять при перетаскивании
-    
-    updateSignalRange(); // Пересчитываем сигналы
+    kshmMarker.on('dragend', updateSignalRange);
+    updateSignalRange();
 }
 
 // --- ОБНОВЛЕННАЯ ФУНКЦИЯ ДЛЯ ИНФО-ПАНЕЛИ ---
@@ -636,6 +696,18 @@ function updateStatusPanel(powerDist, availablePointNames) {
     const panel = document.getElementById('result-panel');
     const resultDiv = document.getElementById('result');
 
+    // Если мы в режиме поиска, эта панель для другого
+    if (currentMode === 'search') {
+        if (activeSearchPoints.length < 2) {
+            resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>${t.searchResultWaiting}`;
+        } else {
+            // Текст для этой панели обновляется в runSmartSearch()
+        }
+        panel.classList.add('active');
+        return;
+    }
+    
+    // Если не в режиме поиска, работает как раньше
     if (!kshmMarker) {
         panel.classList.remove('active');
         resultDiv.innerHTML = '';
@@ -662,7 +734,7 @@ function updateStatusPanel(powerDist, availablePointNames) {
 
 // --- ГЛАВНАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ---
 function updateSignalRange() {
-    signalLinesLayer.clearLayers(); // Очищаем все старые линии
+    signalLinesLayer.clearLayers();
 
     // Сбрасываем все "доступные" точки в "нейтральные"
     currentMapPoints.forEach(p => {
@@ -708,7 +780,7 @@ function updateSignalRange() {
         let isKshmPowered = false;
         let minPowerDist = Infinity;
 
-        // 2a. Проверяем, "запитана" ли КШМ (2км от СИНИХ точек) - ИСПРАВЛЕНО
+        // 2a. Проверяем, "запитана" ли КШМ (2км от СИНИХ точек)
         capturedPoints.forEach(cPoint => {
             const distToKshm = calculateDistance(cPoint.coords, kshmPos);
             if (distToKshm <= POINT_TO_KSHM_RANGE) { 
@@ -742,5 +814,99 @@ function updateSignalRange() {
     updateStatusPanel(kshmPowerDist, kshmActivePointNames); // Обновляем инфо-панель
 }
 
+// --- НОВЫЕ ФУНКЦИИ ДЛЯ УМНОГО ПОИСКА ---
+
+// Перерисовывает красные круги
+function redrawSearchCircles() {
+    searchCirclesLayer.clearLayers();
+    activeSearchPoints.forEach(p => {
+        L.circle(p.coords, {
+            radius: KSHM_RANGE,
+            className: 'search-circle-red'
+        }).addTo(searchCirclesLayer)
+          .bindPopup(`${translations[currentLang].searchPopup} (${p.name})`)
+          .openPopup();
+    });
+}
+
+// Проверяет, находится ли точка (lat, lng) ВНУТРИ всех кругов
+function isPointInAllCircles(lat, lng) {
+    for (const point of activeSearchPoints) {
+        const dist = calculateDistance([lat, lng], point.coords);
+        if (dist > KSHM_RANGE) {
+            return false; // Точка вне одного из кругов
+        }
+    }
+    return true; // Точка внутри ВСЕХ кругов
+}
+
+// Главная функция "Умного Поиска"
+function runSmartSearch() {
+    searchResultLayer.clearLayers();
+    const t = translations[currentLang];
+    const resultDiv = document.getElementById('result');
+
+    if (activeSearchPoints.length < 2) {
+        resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>${t.searchResultWaiting}`;
+        return;
+    }
+    
+    let validGridPoints = [];
+    
+    // Находим "общий" квадрат, в котором будем искать, чтобы не сканировать всю карту
+    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+    activeSearchPoints.forEach(p => {
+        minLat = Math.min(minLat, p.coords[0] - KSHM_RANGE);
+        maxLat = Math.max(maxLat, p.coords[0] + KSHM_RANGE);
+        minLng = Math.min(minLng, p.coords[1] - KSHM_RANGE);
+        maxLng = Math.max(maxLng, p.coords[1] + KSHM_RANGE);
+    });
+
+    // Сканируем сеткой (с шагом 50м) только этот квадрат
+    for (let lat = minLat; lat <= maxLat; lat += SEARCH_SCAN_STEP) {
+        for (let lng = minLng; lng <= maxLng; lng += SEARCH_SCAN_STEP) {
+            if (isPointInAllCircles(lat, lng)) {
+                validGridPoints.push([lat, lng]);
+            }
+        }
+    }
+    
+    if (validGridPoints.length === 0) {
+        resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>${t.kshmNoPoints}`;
+        return; // Зона не найдена
+    }
+
+    // Находим границы "зеленого квадрата"
+    let bMinLat = Infinity, bMaxLat = -Infinity, bMinLng = Infinity, bMaxLng = -Infinity;
+    validGridPoints.forEach(p => {
+        bMinLat = Math.min(bMinLat, p[0]);
+        bMaxLat = Math.max(bMaxLat, p[0]);
+        bMinLng = Math.min(bMinLng, p[1]);
+        bMaxLng = Math.max(bMaxLng, p[1]);
+    });
+
+    // Рисуем зеленый квадрат
+    const bounds = [[bMinLat, bMinLng], [bMaxLat, bMaxLng]];
+    L.rectangle(bounds, { className: 'search-result-green' }).addTo(searchResultLayer);
+    
+    resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>Зона найдена!`;
+}
+
+
 // --- ЗАПУСК РЕЖИМА ПК ПО УМОЛЧАНИЮ ---
 setDevice('pc');
+
+// --- ЛОГИКА СЕКРЕТНОЙ КНОПКИ ---
+try {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('admin') === 'true') {
+        document.getElementById('toggle-search-mode-btn').style.display = 'block';
+        // Подгоняем ширину панели кнопок
+        document.querySelector('.controls').style.width = 'auto'; 
+    } else {
+        // Убедимся, что она скрыта, если нет параметра
+        document.getElementById('toggle-search-mode-btn').style.display = 'none';
+    }
+} catch (e) {
+    console.error("Error reading URL params:", e);
+}
