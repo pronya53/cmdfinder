@@ -16,9 +16,9 @@ let searchTargetPoints = []; // Цели (атакуемые точки)
 const SEARCH_SCAN_STEP = 50; // Шаг сканирования карты (в метрах)
 
 // --- ОБНОВЛЕННЫЕ КОНСТАНТЫ ---
-const KSHM_RANGE = 1500; // 1.5км (КШМ -> Точка И Поиск)
+const KSHM_RANGE = 2000; // 1.5км (КШМ -> Точка И Поиск)
 const POINT_RANGE = 2000; // 2км (Точка -> Точка) --- ИЗМЕНЕНО
-const POINT_TO_KSHM_RANGE = 1500; // 2км (Точка -> КШМ)
+const POINT_TO_KSHM_RANGE = 2000; // 2км (Точка -> КШМ)
 
 // --- ОБЪЕКТ СО ВСЕМИ ДАННЫМИ ТОЧЕК (БЕЗ ИМЕН) ---
 const mapPointsData = {
@@ -943,6 +943,7 @@ try {
 } catch (e) {
     console.error("Error reading URL params:", e);
 }
+
 
 
 
