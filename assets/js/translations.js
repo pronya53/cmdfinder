@@ -29,7 +29,7 @@ const translations = {
                         <li id="info-item4"><b>Режим КШМ (<i class="fa fa-truck"></i>):</b> Нажмите ПКМ (на ПК) или тапните (на моб.) по карте, чтобы поставить КШМ (синий квадрат).</li>
                         <li id="info-item5"><b>Питание КШМ (2км):</b> КШМ "запитывается", если находится в радиусе <b>2км</b> от любой <b>синей</b> (захваченной) точки.</li>
                         <li id="info-item6"><b>Сигнал от КШМ (2км):</b> Запитанная КШМ активирует (делает красными) все нейтральные точки в радиусе <b>2км</b>.</li>
-                        <li id="info-item7" style="color: #FF0000;"><b>Поиск КШМ (<i class="fa fa-search-location"></i>):</b> (Только для админов) Включите режим. Кликайте на <b>атакуемые</b> точки. Сайт автоматически найдет и выделит красным все возможные зоны, откуда КШМ (запитанная от любой *вражеской* точки) может атаковать все выбранные цели.</li>
+                        <li id="info-item7"><b>Поиск КШМ (<i class="fa fa-search-location"></i>):</b> Включите режим. Кнопками в панели внизу отметьте точки: <b>Враг</b> — которые держит противник, <b>Мои</b> — ваши захваченные. Затем выберите <b>Цель</b> — точку, которую враг атакует, но без КШМ взять не может. Сайт выделит красным зону, где может стоять КШМ врага: она достаёт до цели (1.5 км) и запитана от его точки (2 км). Красный кружок — вероятное место.</li>
                    </ul>
                    <p id="info-author"><strong>Автор:</strong> PRONEDROG</p>
                    <p id="info-mapdata"><strong>Данные карт предоставлены:</strong> Conflict In Europe</p>`,
@@ -63,10 +63,28 @@ const translations = {
         
         // --- НОВЫЕ СТРОКИ ДЛЯ ПОИСКА ---
         toggleSearchModeTitle: 'Поиск вражеской КШМ',
-        notificationSearchMode: 'ПОИСК: Кликайте на АТАКУЕМЫЕ врагом точки',
-        searchPopupTarget: 'Атакуемая цель (2км)',
+        notificationSearchMode: 'ПОИСК: отметьте точки врага и выберите цель',
+        searchPopupTarget: 'Атакуемая цель (1.5км)',
         searchResultTitle: 'Возможная зона КШМ:',
-        searchResultWaiting: 'Кликните хотя бы 1 точку...',
+        searchUnitKm2: 'км²',
+        searchUnitM: 'м',
+        searchResultWaiting: 'Выберите «Цель»: точку, которую атакует враг.',
+        searchToolEnemy: 'Враг',
+        searchToolMine: 'Мои',
+        searchToolTarget: 'Цель',
+        searchReset: 'Сбросить',
+        searchHints: { enemy: 'Кликайте по точкам, которые держит враг.', mine: 'Кликайте по своим захваченным точкам.', target: 'Кликните точку, которую атакует враг (можно несколько).' },
+        searchNoPointsOnMap: 'На этой карте нет точек для поиска.',
+        searchNeedEnemy: 'Отметьте точки врага (кнопка «Враг»), чтобы понять, откуда КШМ получает питание.',
+        searchNoZoneTargets: 'Одна КШМ не достаёт сразу до всех выбранных целей. Уберите лишнюю цель.',
+        searchNoZonePower: 'Рядом с целью нет точек врага, от которых КШМ могла бы запитаться (нужна точка врага ближе 3.5 км).',
+        searchZoneFound: 'Зона найдена!',
+        searchZoneArea: 'Площадь:',
+        searchPowerFrom: 'Запитка от:',
+        searchNearPoint: 'Рядом с точкой',
+        searchKshmGuess: 'Вероятное место КШМ',
+        searchNoKshmNeeded: 'Без КШМ враг и так дотягивается до:',
+        compass: ['С', 'СВ', 'В', 'ЮВ', 'Ю', 'ЮЗ', 'З', 'СЗ'],
 
         // --- ПЕРЕВОДЫ НАЗВАНИЙ ТОЧЕК ---
         pointNames: {
@@ -103,7 +121,7 @@ const translations = {
                         <li id="info-item4"><b>Режим КШМ (<i class="fa fa-truck"></i>):</b> Натисніть ПКМ (на ПК) або тапніть (на моб.) по карті, щоб поставити КШМ (синій квадрат).</li>
                         <li id="info-item5"><b>Живлення КШМ (2км):</b> КШМ "отримує живлення", якщо знаходиться в радіусі <b>2км</b> від будь-якої <b>синьої</b> (захопленої) точки.</li>
                         <li id="info-item6"><b>Сигнал від КШМ (2км):</b> КШМ, що має живлення, активує (робить червоними) усі нейтральні точки в радіусі <b>2км</b>.</li>
-                        <li id="info-item7" style="color: #FF0000;"><b>Пошук КШМ (<i class="fa fa-search-location"></i>):</b> (Тільки для адмінів) Увімкніть режим. Клікайте на <b>атаковані</b> точки. Сайт автоматично знайде і виділить червоним всі можливі зони, звідки КШМ (що живиться від будь-якої *ворожої* точки) може атакувати всі обрані цілі.</li>
+                        <li id="info-item7"><b>Пошук КШМ (<i class="fa fa-search-location"></i>):</b> Увімкніть режим. Кнопками в панелі внизу позначте точки: <b>Ворог</b> — які тримає противник, <b>Мої</b> — ваші захоплені. Потім оберіть <b>Ціль</b> — точку, яку ворог атакує, але без КШМ узяти не може. Сайт виділить червоним зону, де може стояти КШМ ворога: вона сягає цілі (1.5 км) і живиться від його точки (2 км). Червоне коло — ймовірне місце.</li>
                    </ul>
                    <p id="info-author"><strong>Автор:</strong> PRONEDROG</p>
                    <p id="info-mapdata"><strong>Дані карт надано:</strong> Conflict In Europe</p>`,
@@ -134,10 +152,28 @@ const translations = {
 
         // --- НОВЫЕ СТРОКИ ДЛЯ ПОИСКА ---
         toggleSearchModeTitle: 'Пошук ворожої КШМ',
-        notificationSearchMode: 'ПОШУК: Клікайте на АТАКОВАНІ ворогом точки',
-        searchPopupTarget: 'Атакована ціль (2км)',
+        notificationSearchMode: 'ПОШУК: позначте точки ворога та оберіть ціль',
+        searchPopupTarget: 'Атакована ціль (1.5км)',
         searchResultTitle: 'Можлива зона КШМ:',
-        searchResultWaiting: 'Клікніть хоча б 1 точку...',
+        searchUnitKm2: 'км²',
+        searchUnitM: 'м',
+        searchResultWaiting: 'Оберіть «Ціль»: точку, яку атакує ворог.',
+        searchToolEnemy: 'Ворог',
+        searchToolMine: 'Мої',
+        searchToolTarget: 'Ціль',
+        searchReset: 'Скинути',
+        searchHints: { enemy: 'Клікайте по точках, які тримає ворог.', mine: 'Клікайте по своїх захоплених точках.', target: 'Клікніть точку, яку атакує ворог (можна кілька).' },
+        searchNoPointsOnMap: 'На цій карті немає точок для пошуку.',
+        searchNeedEnemy: 'Позначте точки ворога (кнопка «Ворог»), щоб зрозуміти, звідки КШМ отримує живлення.',
+        searchNoZoneTargets: 'Одна КШМ не сягає одразу всіх обраних цілей. Приберіть зайву ціль.',
+        searchNoZonePower: 'Поруч із ціллю немає точок ворога, від яких КШМ могла б живитися (потрібна точка ворога ближче 3.5 км).',
+        searchZoneFound: 'Зону знайдено!',
+        searchZoneArea: 'Площа:',
+        searchPowerFrom: 'Живлення від:',
+        searchNearPoint: 'Поруч із точкою',
+        searchKshmGuess: 'Ймовірне місце КШМ',
+        searchNoKshmNeeded: 'Без КШМ ворог і так дістає до:',
+        compass: ['Пн', 'ПнСх', 'Сх', 'ПдСх', 'Пд', 'ПдЗх', 'Зх', 'ПнЗх'],
         
         // --- ПЕРЕВОДЫ НАЗВАНИЙ ТОЧЕК ---
         pointNames: {
@@ -174,7 +210,7 @@ const translations = {
                         <li id="info-item4"><b>KSHM Mode (<i class="fa fa-truck"></i>):</b> Right-click (on PC) or tap (on mob.) the map to place a KSHM (blue square).</li>
                         <li id="info-item5"><b>KSHM Power (2km):</b> The KSHM is "powered" if it is within <b>2km</b> of any <b>blue</b> (captured) point.</li>
                         <li id="info-item6"><b>Signal from KSHM (2km):</b> A powered KSHM activates (turns red) all neutral points within a <b>2km</b> radius.</li>
-                        <li id="info-item7" style="color: #FF0000;"><b>KSHM Search (<i class="fa fa-search-location"></i>):</b> (Admin only) Enable mode. Click all <b>attacked</b> points. The site will auto-find and highlight in red all possible KSHM locations (powered by *any* enemy point) that can attack all selected targets.</li>
+                        <li id="info-item7"><b>KSHM Search (<i class="fa fa-search-location"></i>):</b> Enable the mode. Use the buttons in the bottom panel to mark points: <b>Enemy</b> — held by the enemy, <b>Mine</b> — your captured points. Then pick a <b>Target</b> — a point the enemy is attacking but cannot take without a KSHM. The site highlights in red where the enemy KSHM can stand: it reaches the target (1.5 km) and is powered by an enemy point (2 km). The red dot is the likely spot.</li>
                    </ul>
                    <p id="info-author"><strong>Author:</strong> PRONEDROG</p>
                    <p id="info-mapdata"><strong>Map Data Provided by:</strong> Conflict In Europe</p>`,
@@ -205,10 +241,28 @@ const translations = {
 
         // --- НОВЫЕ СТРОКИ ДЛЯ ПОИСКА ---
         toggleSearchModeTitle: 'Enemy KSHM Search',
-        notificationSearchMode: 'SEARCH: Click all ATTACKED enemy points',
-        searchPopupTarget: 'Attacked Target (2km)',
+        notificationSearchMode: 'SEARCH: mark the enemy points, then pick a target',
+        searchPopupTarget: 'Attacked Target (1.5km)',
         searchResultTitle: 'Possible KSHM Area:',
-        searchResultWaiting: 'Click at least 1 point...',
+        searchUnitKm2: 'km²',
+        searchUnitM: 'm',
+        searchResultWaiting: 'Pick a «Target»: a point the enemy is attacking.',
+        searchToolEnemy: 'Enemy',
+        searchToolMine: 'Mine',
+        searchToolTarget: 'Target',
+        searchReset: 'Reset',
+        searchHints: { enemy: 'Click the points held by the enemy.', mine: 'Click your captured points.', target: 'Click a point the enemy is attacking (several allowed).' },
+        searchNoPointsOnMap: 'There are no points on this map to search.',
+        searchNeedEnemy: 'Mark the enemy points (the «Enemy» button) so we know where the KSHM can get power.',
+        searchNoZoneTargets: 'One KSHM cannot reach all the selected targets at once. Remove one of them.',
+        searchNoZonePower: 'No enemy point near the target can power a KSHM (an enemy point within 3.5 km is needed).',
+        searchZoneFound: 'Zone found!',
+        searchZoneArea: 'Area:',
+        searchPowerFrom: 'Powered from:',
+        searchNearPoint: 'Near point',
+        searchKshmGuess: 'Likely KSHM position',
+        searchNoKshmNeeded: 'The enemy can already reach these without a KSHM:',
+        compass: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'],
 
         // --- ПЕРЕВОДЫ НАЗВАНИЙ ТОЧЕК ---
         pointNames: {
