@@ -13,7 +13,9 @@ let currentMapPoints = []; // Тут будет храниться состоя�
 let currentMode = 'none'; // 'none', 'points', 'kshm', 'search'
 // --- НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ ПОИСКА ---
 let searchTargetPoints = []; // Цели (атакуемые точки)
-const SEARCH_SCAN_STEP = 50; // Шаг сканирования карты (в метрах)
+const searchEnemyIds = new Set(); // id точек, которые держит враг (используется только в режиме поиска)
+let searchTool = 'enemy'; // Что делает клик по точке в режиме поиска: 'enemy' | 'mine' | 'target'
+const SEARCH_SCAN_STEP = 10; // Шаг построчного расчёта зоны КШМ (в метрах)
 
 // --- ОБНОВЛЕННЫЕ КОНСТАНТЫ ---
 const KSHM_RANGE = 1500; // 1.5км (КШМ -> Точка И Поиск)
@@ -94,7 +96,7 @@ function updateTexts() {
     document.getElementById('info-title').textContent = t.infoTitle;
     document.getElementById('info-content').innerHTML = t.infoText;
     document.getElementById('theme-label').innerHTML = t.themeLabel;
-    document.getElementById('toggleMenuLabel').textContent = t.toggleMenuLabel.toUpperCase();
+    document.getElementById('toggleMenuLabel').textContent = t.toggleMenuLabel;
     document.getElementById('toggle-points-mode-btn').title = t.togglePointsModeTitle;
     document.getElementById('toggle-kshm-mode-btn').title = t.toggleKshmModeTitle;
     if (kshmMarker) kshmMarker.bindPopup(translations[currentLang].kshmPopup);
@@ -273,6 +275,7 @@ function changeLayer() {
     if (searchCirclesLayer) searchCirclesLayer.clearLayers();
     if (searchResultLayer) searchResultLayer.clearLayers();
     searchTargetPoints = [];
+    searchEnemyIds.clear();
 
     deactivateModes();
     currentMapPoints = []; // Очищаем массив состояния
@@ -343,8 +346,9 @@ function clearMap() {
     if (searchCirclesLayer) searchCirclesLayer.clearLayers();
     if (searchResultLayer) searchResultLayer.clearLayers();
     searchTargetPoints = [];
+    searchEnemyIds.clear();
     deactivateModes();
-    
+
     // Скрываем инфо-панель
     closeResult();
 }
@@ -357,12 +361,12 @@ function toggleMainMenu() {
         modal.setAttribute("style", "display: flex;")
         setTimeout(() => {
             modal.classList.add('active');
-        }, 100)
+        }, 20)
     } else {
         modal.classList.remove('active');
         setTimeout(() => {
             modal.setAttribute("style", "display: none;")
-        }, 100)
+        }, 300)
     }
 
     console.log('Menu state:', modal.classList.contains('active') ? 'open' : 'closed');
@@ -452,37 +456,25 @@ function setDevice(mode) {
 // --- КОНЕЦ ОБНОВЛЕННОЙ ФУНКЦИИ ---
 
 // Функция уведомлений
+let notificationTimer = null;
+
 function showNotification(text) {
     let notification = document.getElementById('notification');
     if (!notification) {
         notification = document.createElement('div');
         notification.id = 'notification';
-        notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 50%;
-                    transform: translateX(50%);
-                    background: linear-gradient(135deg, #2f855a, #38a169);
-                    color: #e2e8f0;
-                    padding: 15px 25px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 15px rgba(47, 133, 90, 0.4);
-                    z-index: 3000;
-                    font-weight: bold;
-                    opacity: 0;
-                    transition: all 0.3s ease;
-                    pointer-events: none;
-                `;
+        notification.className = 'toast'; // внешний вид задан в style.css
         document.body.appendChild(notification);
     }
 
     notification.textContent = text;
-    notification.style.opacity = '1';
-    notification.style.transform = 'translateX(50%) translateY(0)';
+    // Дадим браузеру отрисовать начальное состояние, чтобы анимация сработала
+    requestAnimationFrame(() => notification.classList.add('show'));
 
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(50%) translateY(-20px)';
+    // Новое уведомление продлевает показ, а не обрывается таймером предыдущего
+    clearTimeout(notificationTimer);
+    notificationTimer = setTimeout(() => {
+        notification.classList.remove('show');
     }, 3000);
 }
 
@@ -524,6 +516,7 @@ function calculateDistance(point1, point2) {
 
 // --- РЕЖИМЫ ---
 function togglePointsMode() {
+    const wasSearch = (currentMode === 'search');
     currentMode = (currentMode === 'points') ? 'none' : 'points';
     const btn = document.getElementById('toggle-points-mode-btn');
     if (currentMode === 'points') {
@@ -535,9 +528,11 @@ function togglePointsMode() {
     } else {
         deactivateModes();
     }
+    if (wasSearch) leaveSearchMode();
 }
 
 function toggleKshmMode() {
+    const wasSearch = (currentMode === 'search');
     currentMode = (currentMode === 'kshm') ? 'none' : 'kshm';
     const btn = document.getElementById('toggle-kshm-mode-btn');
     if (currentMode === 'kshm') {
@@ -549,9 +544,10 @@ function toggleKshmMode() {
     } else {
         deactivateModes();
     }
+    if (wasSearch) leaveSearchMode();
 }
 
-// --- НОВАЯ ФУНКЦИЯ ПОИСКА ---
+// --- РЕЖИМ ПОИСКА КШМ ---
 function toggleSearchMode() {
     currentMode = (currentMode === 'search') ? 'none' : 'search';
     const btn = document.getElementById('toggle-search-mode-btn');
@@ -559,12 +555,22 @@ function toggleSearchMode() {
         btn.classList.add('active');
         document.getElementById('toggle-points-mode-btn').classList.remove('active');
         document.getElementById('toggle-kshm-mode-btn').classList.remove('active');
+        // Пока враг не отмечен, начинаем с расстановки его точек, иначе сразу с выбора цели
+        searchTool = (searchEnemyIds.size === 0) ? 'enemy' : 'target';
         showNotification(translations[currentLang].notificationSearchMode);
         map.getContainer().style.cursor = 'help';
-        updateStatusPanel(); // Показываем панель "ожидания"
+        redrawPoints();      // подсветить вражеские точки
+        updateStatusPanel(); // в режиме поиска рисует панель поиска
     } else {
         deactivateModes();
+        leaveSearchMode();
     }
+}
+
+// Вернуть обычный вид карты после выхода из режима поиска
+function leaveSearchMode() {
+    resetSearchView();
+    updateSignalRange(); // вернуть линии связи, статусы точек и обычную инфо-панель
 }
 
 function deactivateModes() {
@@ -599,8 +605,12 @@ function createPointMarker(point) {
         color = '#FFFF00'; // Желтый (Нейтрально)
     }
     
-    // В режиме ПОИСКА все "наши" точки (синие) делаем полупрозрачными
+    // В режиме ПОИСКА все "наши" точки (синие) делаем полупрозрачными,
+    // а точки, которые держит враг, выделяем оранжевым
+    const isEnemy = (currentMode === 'search' && searchEnemyIds.has(point.id));
+    if (isEnemy) color = '#FF8C00';
     let opacity = (currentMode === 'search' && point.status === 'captured') ? 0.3 : 0.5;
+    if (isEnemy) opacity = 0.85;
 
     const marker = L.circleMarker(latlng, {
         radius: 8,
@@ -671,20 +681,39 @@ function handlePointClick(clickedPointId) {
     updateSignalRange();
 }
 
-// --- ИСПРАВЛЕННЫЙ КЛИК В РЕЖИМЕ ПОИСКА ---
+// --- КЛИК В РЕЖИМЕ ПОИСКА (зависит от выбранного инструмента) ---
 function handleSearchClick(point) {
-    // УБРАНА ПРОВЕРКА if (point.status === 'captured') return;
-    // Теперь можно кликать на ЛЮБУЮ точку
-    
-    const index = searchTargetPoints.findIndex(p => p.id === point.id);
-    if (index > -1) {
-        searchTargetPoints.splice(index, 1); // Убираем, если уже есть (toggle)
-    } else {
-        searchTargetPoints.push(point); // Добавляем
+    if (searchTool === 'target') {
+        // Цель: любая точка, которую атакует враг
+        const index = searchTargetPoints.findIndex(p => p.id === point.id);
+        if (index > -1) {
+            searchTargetPoints.splice(index, 1); // Убираем, если уже есть (toggle)
+        } else {
+            searchTargetPoints.push(point);
+        }
+        refreshSearch();
+        return;
     }
-    
-    redrawSearchCircles();
-    runSmartSearch();
+
+    if (searchTool === 'enemy') {
+        // Точка врага (toggle). Вражеская точка не может быть нашей
+        if (searchEnemyIds.has(point.id)) {
+            searchEnemyIds.delete(point.id);
+        } else {
+            searchEnemyIds.add(point.id);
+            if (point.status === 'captured') point.status = 'neutral';
+        }
+    } else {
+        // Наша точка (toggle), как в режиме точек
+        if (point.status === 'captured') {
+            point.status = 'neutral';
+        } else {
+            point.status = 'captured';
+            searchEnemyIds.delete(point.id);
+        }
+    }
+    // Пересчитает статусы, перерисует точки и обновит панель поиска
+    updateSignalRange();
 }
 
 // Установка КШМ
@@ -707,15 +736,9 @@ function updateStatusPanel(powerDist, availablePointNames) {
     const panel = document.getElementById('result-panel');
     const resultDiv = document.getElementById('result');
 
-    // Если мы в режиме поиска, эта панель для другого
+    // В режиме поиска панель показывает результат поиска
     if (currentMode === 'search') {
-        let title = `<b>${t.searchResultTitle}</b><br>`;
-        if (searchTargetPoints.length === 0) {
-            resultDiv.innerHTML = title + t.searchResultWaiting;
-        } else {
-            // Текст для этой панели обновляется в runSmartSearch()
-        }
-        panel.classList.add('active');
+        refreshSearch();
         return;
     }
     
@@ -826,125 +849,277 @@ function updateSignalRange() {
     updateStatusPanel(kshmPowerDist, kshmActivePointNames); // Обновляем инфо-панель
 }
 
-// --- НОВЫЕ ФУНКЦИИ ДЛЯ УМНОГО ПОИСКА ---
+// --- ПОИСК ВРАЖЕСКОЙ КШМ ---
+// Как это работает:
+//  1. Игрок отмечает точки: свои (синие) и те, что держит враг (оранжевые).
+//  2. Выбирает цель: точку, которую враг атакует, но без КШМ взять не может.
+//  3. КШМ врага должна одновременно:
+//       - стоять не дальше KSHM_RANGE от КАЖДОЙ цели;
+//       - быть запитанной, то есть стоять не дальше POINT_TO_KSHM_RANGE от какой-либо точки врага.
+//     Зона считается построчно и точно (пересечение кругов целей, объединённое с кругами питания).
 
-// Перерисовывает красные круги
-function redrawSearchCircles() {
+// Считает зону возможного положения КШМ врага.
+// Возвращает { reason, rows, area, anchor, powerPoints }:
+//   reason: null (зона есть) | 'targets' (нет места, достающего до всех целей) | 'power' (место есть, но питания нет)
+//   rows: [{ y0, y1, spans: [[x0, x1], ...] }]  - строки зоны (y = lat, x = lng)
+//   area: площадь зоны, м²
+//   anchor: [lat, lng] - точка внутри зоны, ближайшая к её центру тяжести
+//   powerPoints: точки врага, от которых КШМ в этой зоне может получить питание
+function computeKshmZone(targets, sources, mapW, mapH) {
+    const reach = KSHM_RANGE;            // КШМ -> цель
+    const power = POINT_TO_KSHM_RANGE;   // точка врага -> КШМ
+
+    // Рамка пересечения кругов целей (в границах карты)
+    let yMin = 0, yMax = mapH, xMin = 0, xMax = mapW;
+    targets.forEach(t => {
+        yMin = Math.max(yMin, t.coords[0] - reach);
+        yMax = Math.min(yMax, t.coords[0] + reach);
+        xMin = Math.max(xMin, t.coords[1] - reach);
+        xMax = Math.min(xMax, t.coords[1] + reach);
+    });
+    const result = { reason: 'targets', rows: [], area: 0, anchor: null, powerPoints: [] };
+    if (yMin >= yMax || xMin >= xMax) return result;
+
+    let hasTargetOverlap = false;
+    let area = 0, sumX = 0, sumY = 0;
+    const powerSet = new Set();
+
+    for (let y0 = yMin; y0 < yMax; y0 += SEARCH_SCAN_STEP) {
+        const y1 = Math.min(y0 + SEARCH_SCAN_STEP, yMax);
+        const y = (y0 + y1) / 2;
+
+        // Отрезок по X, достающий до всех целей
+        let left = xMin, right = xMax;
+        for (const t of targets) {
+            const dy = y - t.coords[0];
+            const h2 = reach * reach - dy * dy;
+            if (h2 < 0) { left = Infinity; break; }
+            const h = Math.sqrt(h2);
+            left = Math.max(left, t.coords[1] - h);
+            right = Math.min(right, t.coords[1] + h);
+        }
+        if (!(left < right)) continue;
+        hasTargetOverlap = true;
+
+        // Отрезки по X, где есть питание от точек врага
+        const powered = [];
+        for (const s of sources) {
+            const dy = y - s.coords[0];
+            const h2 = power * power - dy * dy;
+            if (h2 < 0) continue;
+            const h = Math.sqrt(h2);
+            const a = s.coords[1] - h, b = s.coords[1] + h;
+            if (a < right && b > left) {
+                powered.push([Math.max(a, left), Math.min(b, right)]);
+                powerSet.add(s.id);
+            }
+        }
+        if (powered.length === 0) continue;
+
+        // Объединяем перекрывающиеся отрезки
+        powered.sort((p, q) => p[0] - q[0]);
+        const spans = [powered[0].slice()];
+        for (let i = 1; i < powered.length; i++) {
+            const last = spans[spans.length - 1];
+            if (powered[i][0] <= last[1]) {
+                last[1] = Math.max(last[1], powered[i][1]);
+            } else {
+                spans.push(powered[i].slice());
+            }
+        }
+
+        result.rows.push({ y0, y1, spans });
+        spans.forEach(([x0, x1]) => {
+            const a = (x1 - x0) * (y1 - y0);
+            area += a;
+            sumX += a * (x0 + x1) / 2;
+            sumY += a * y;
+        });
+    }
+
+    if (result.rows.length === 0) {
+        result.reason = hasTargetOverlap ? 'power' : 'targets';
+        return result;
+    }
+
+    // Точка внутри зоны, ближайшая к центру тяжести (сам центр может оказаться вне зоны)
+    const cx = sumX / area, cy = sumY / area;
+    let best = null, bestDist = Infinity;
+    result.rows.forEach(row => {
+        const y = (row.y0 + row.y1) / 2;
+        row.spans.forEach(([x0, x1]) => {
+            const x = Math.min(Math.max(cx, x0), x1);
+            const d = Math.hypot(x - cx, y - cy);
+            if (d < bestDist) { bestDist = d; best = [y, x]; }
+        });
+    });
+
+    result.reason = null;
+    result.area = area;
+    result.anchor = best;
+    result.powerPoints = sources.filter(s => powerSet.has(s.id));
+    return result;
+}
+
+// Выбор инструмента клика в панели поиска
+function setSearchTool(tool) {
+    searchTool = tool;
+    refreshSearch();
+}
+
+// Убрать с карты всё, что относится к поиску (отметки врага остаются)
+function resetSearchView() {
+    if (searchCirclesLayer) searchCirclesLayer.clearLayers();
+    if (searchResultLayer) searchResultLayer.clearLayers();
+    searchTargetPoints = [];
+}
+
+// Кнопка "Сбросить" в панели поиска: убирает цели и отметки врага
+function resetSearchAll() {
+    searchEnemyIds.clear();
+    searchTargetPoints = [];
+    searchTool = 'enemy';
+    updateSignalRange(); // перерисует точки и панель
+}
+
+// Круги целей (радиус достижения КШМ) и круги питания от точек врага
+function redrawSearchCircles(powerPoints) {
     searchCirclesLayer.clearLayers();
     const t = translations[currentLang];
-    
+
     searchTargetPoints.forEach(p => {
         L.circle(p.coords, {
-            radius: KSHM_RANGE, // 2км
+            radius: KSHM_RANGE,
             className: 'search-circle-red'
         }).addTo(searchCirclesLayer)
           .bindPopup(`${t.searchPopupTarget} (${p.name})`);
     });
+
+    (powerPoints || []).forEach(p => {
+        L.circle(p.coords, {
+            radius: POINT_TO_KSHM_RANGE,
+            className: 'search-source-circle'
+        }).addTo(searchCirclesLayer);
+    });
 }
 
-// Проверяет, находится ли точка (lat, lng) ВНУТРИ всех кругов
-function isPointValidForSearch(lat, lng, sources, targets) {
-    // 1. Должна быть в радиусе 2км от ВСЕХ ЦЕЛЕЙ
-    for (const target of targets) {
-        if (calculateDistance([lat, lng], target.coords) > KSHM_RANGE) {
-            return false; // Слишком далеко от одной из целей
-        }
-    }
+// Рисует зону КШМ одним многоугольником и ставит маркер "вероятное место"
+function drawKshmZone(zone) {
+    const t = translations[currentLang];
+    // Каждая строка зоны - отдельный прямоугольник; строки чуть перекрываются, чтобы не было просветов
+    const polygons = [];
+    zone.rows.forEach(row => {
+        row.spans.forEach(([x0, x1]) => {
+            polygons.push([[[row.y0, x0], [row.y0, x1], [row.y1 + 0.5, x1], [row.y1 + 0.5, x0]]]);
+        });
+    });
+    L.polygon(polygons, {
+        className: 'search-zone',
+        stroke: false,
+        fillColor: '#FF2D2D',
+        fillOpacity: 0.35,
+        fillRule: 'nonzero',
+        interactive: false
+    }).addTo(searchResultLayer);
 
-    // 2. Должна быть в радиусе 2км от ХОТЯ БЫ ОДНОГО ИСТОЧНИКА
-    for (const source of sources) {
-        if (calculateDistance([lat, lng], source.coords) <= KSHM_RANGE) {
-            return true; // Найдено! Достает до всех целей и запитано от этого источника
-        }
-    }
-
-    return false; // Достает до всех целей, но не запитано ни от одного источника
+    L.marker(zone.anchor, {
+        icon: L.divIcon({ className: 'kshm-guess-icon', iconSize: [18, 18] }),
+        keyboard: false
+    }).addTo(searchResultLayer).bindTooltip(t.searchKshmGuess, { direction: 'top', offset: [0, -10] });
 }
 
-// Главная функция "Умного Поиска"
-function runSmartSearch() {
+// Ориентир для описания зоны: ближайшая точка карты и сторона света, в которой от неё лежит зона
+function describeZoneLocation(anchor) {
+    const t = translations[currentLang];
+    let nearest = null, nearestDist = Infinity;
+    currentMapPoints.forEach(p => {
+        const d = calculateDistance(anchor, p.coords);
+        if (d < nearestDist) { nearestDist = d; nearest = p; }
+    });
+    if (!nearest) return '';
+
+    const meters = Math.round(nearestDist / 10) * 10;
+    if (meters < 150) return `${t.searchNearPoint} <b>${nearest.name}</b>`;
+
+    // Угол от севера по часовой стрелке (lat растёт вверх = на север)
+    const angle = Math.atan2(anchor[1] - nearest.coords[1], anchor[0] - nearest.coords[0]) * 180 / Math.PI;
+    const dir = t.compass[Math.round(((angle + 360) % 360) / 45) % 8];
+    return `${t.searchNearPoint} <b>${nearest.name}</b>: ${meters} ${t.searchUnitM}, ${dir}`;
+}
+
+// Главная функция поиска: пересчитывает зону и обновляет карту и панель
+function refreshSearch() {
+    if (currentMode !== 'search') return;
+
     searchResultLayer.clearLayers();
+    // В режиме поиска показываем только слои поиска, линии связи мешают
+    signalLinesLayer.clearLayers();
+
+    const enemyPoints = currentMapPoints.filter(p => searchEnemyIds.has(p.id));
+    let zone = null;
+    if (enemyPoints.length > 0 && searchTargetPoints.length > 0) {
+        zone = computeKshmZone(searchTargetPoints, enemyPoints, mapWidth, mapHeight);
+    }
+
+    redrawSearchCircles(zone && !zone.reason ? zone.powerPoints : []);
+    if (zone && !zone.reason) drawKshmZone(zone);
+    renderSearchPanel(enemyPoints, zone);
+}
+
+// Рисует панель: инструменты, подсказка и результат
+function renderSearchPanel(enemyPoints, zone) {
     const t = translations[currentLang];
     const resultDiv = document.getElementById('result');
     const panel = document.getElementById('result-panel');
-    panel.classList.add('active'); // Панель всегда активна в режиме поиска
 
-    if (searchTargetPoints.length === 0) {
-        resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>${t.searchResultWaiting}`;
-        return;
-    }
-
-    // ИСТОЧНИКИ = все точки, которые НЕ захвачены нами (т.е. желтые или красные)
-    const enemySourcePoints = currentMapPoints.filter(p => p.status !== 'captured');
-    
-    if (enemySourcePoints.length === 0) {
-        resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>Все точки захвачены. Нет вражеских источников.`;
-        return;
-    }
-    
-    let validGridPoints = [];
-    
-    // Находим "общий" квадрат, в котором будем искать
-    let allPoints = [...enemySourcePoints, ...searchTargetPoints];
-    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
-    allPoints.forEach(p => {
-        minLat = Math.min(minLat, p.coords[0] - KSHM_RANGE);
-        maxLat = Math.max(maxLat, p.coords[0] + KSHM_RANGE);
-        minLng = Math.min(minLng, p.coords[1] - KSHM_RANGE);
-        maxLng = Math.max(maxLng, p.coords[1] + KSHM_RANGE);
+    const tools = [
+        ['enemy', t.searchToolEnemy, '#FF8C00'],
+        ['mine', t.searchToolMine, '#00BFFF'],
+        ['target', t.searchToolTarget, '#FF0000']
+    ];
+    let html = `<b class="search-title">${t.searchResultTitle}</b>`;
+    html += '<div class="search-tools">';
+    tools.forEach(([id, label, color]) => {
+        html += `<button class="search-tool-btn${searchTool === id ? ' active' : ''}" onclick="setSearchTool('${id}')">` +
+                `<span class="search-tool-dot" style="background:${color}"></span>${label}</button>`;
     });
+    html += `<button class="search-tool-btn search-tool-reset" onclick="resetSearchAll()" title="${t.searchReset}">` +
+            `<i class="fas fa-rotate-left"></i></button>`;
+    html += '</div>';
+    html += `<div class="search-hint">${t.searchHints[searchTool]}</div>`;
 
-    // Сканируем сеткой
-    for (let lat = minLat; lat <= maxLat; lat += SEARCH_SCAN_STEP) {
-        for (let lng = minLng; lng <= maxLng; lng += SEARCH_SCAN_STEP) {
-            if (isPointValidForSearch(lat, lng, enemySourcePoints, searchTargetPoints)) {
-                validGridPoints.push([lat, lng]);
-            }
+    let msg;
+    if (currentMapPoints.length === 0) {
+        msg = t.searchNoPointsOnMap;
+    } else if (enemyPoints.length === 0) {
+        msg = t.searchNeedEnemy;
+    } else if (searchTargetPoints.length === 0) {
+        msg = t.searchResultWaiting;
+    } else if (zone.reason === 'targets') {
+        msg = t.searchNoZoneTargets;
+    } else if (zone.reason === 'power') {
+        msg = t.searchNoZonePower;
+    } else {
+        const km2 = (zone.area / 1e6).toFixed(2);
+        msg = `<b>${t.searchZoneFound}</b><br>${t.searchZoneArea} ~${km2} ${t.searchUnitKm2}<br>` +
+              `${t.searchPowerFrom} ${zone.powerPoints.map(p => p.name).join(', ')}<br>` +
+              describeZoneLocation(zone.anchor);
+    }
+
+    // Цели, до которых враг достаёт и без КШМ (точка врага ближе POINT_RANGE)
+    if (enemyPoints.length > 0 && searchTargetPoints.length > 0) {
+        const easy = searchTargetPoints.filter(tp =>
+            enemyPoints.some(ep => calculateDistance(tp.coords, ep.coords) <= POINT_RANGE));
+        if (easy.length > 0) {
+            msg += `<br><span class="search-note">${t.searchNoKshmNeeded} ${easy.map(p => p.name).join(', ')}</span>`;
         }
     }
-    
-    if (validGridPoints.length === 0) {
-        resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>${t.kshmNoPoints}`; // "Нет пересечения"
-        return; // Зона не найдена
-    }
 
-    // Находим границы "красного квадрата"
-    let bMinLat = Infinity, bMaxLat = -Infinity, bMinLng = Infinity, bMaxLng = -Infinity;
-    validGridPoints.forEach(p => {
-        bMinLat = Math.min(bMinLat, p[0]);
-        bMaxLat = Math.max(bMaxLat, p[0]);
-        bMinLng = Math.min(bMinLng, p[1]);
-        bMaxLng = Math.max(bMaxLng, p[1]);
-    });
-
-    // Рисуем красный квадрат
-    const bounds = [[bMinLat, bMinLng], [bMaxLat, bMaxLng]];
-    L.rectangle(bounds, { className: 'search-result-red' }).addTo(searchResultLayer);
-    
-    resultDiv.innerHTML = `<b>${t.searchResultTitle}</b><br>Зона найдена!`;
+    html += `<div class="search-msg">${msg}</div>`;
+    resultDiv.innerHTML = html;
+    panel.classList.add('active');
 }
 
 
 // --- ЗАПУСК РЕЖИМА ПК ПО УМОЛЧАНИЮ ---
 setDevice('pc');
-
-// --- ЛОГИКА СЕКРЕТНОЙ КНОПКИ ---
-try {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('admin') === 'true') {
-        const adminBtn = document.getElementById('toggle-search-mode-btn');
-        adminBtn.style.display = 'block';
-        // Подгоняем ширину панели кнопок
-        document.querySelector('.controls').style.width = 'auto'; 
-    } else {
-        // Убедимся, что она скрыта, если нет параметра
-        document.getElementById('toggle-search-mode-btn').style.display = 'none';
-    }
-} catch (e) {
-    console.error("Error reading URL params:", e);
-}
-
-
-
-
-
